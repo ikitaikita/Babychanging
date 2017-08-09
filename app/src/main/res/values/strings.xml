@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Babychanging</string>
+    <string name="placename">name of place</string>
+    <string name="introducename">introduce the name of the place</string>
+    <string name="ok_button_label">Ok</string>
+    <string name="no_button_label">No</string>
+    <string name="cancel_button_label">Cancel</string>
+    <string name="title">Before upload, please rate the baby changing</string>
+    <string name="text_item">baby changing pic</string>
+    <string name="addfavourites">Do you want to add to favourites?</string>
+    <string name="removefavourites">Do you want to remove from favourites?</string>
+    <string name="info">Info</string>
+    <string name="loading">Loading...</string>
+
+    <string name="permission_location_explanation">Allow Takeadip to access GPS and WIFI?</string>
+
+    <string name="ok">OK</string>
+
+    <string name="successfull_load">Succefully uploaded</string>
+    <string name="error_upload">An upload error occurred. Please try again</string>
+    <string name="distance">distance: </string>
+    <string name="duration">duration: </string>
+
+    <string name="share_subject">Baby Changing App</string>
+    <string name="share_body">I want to share this place to change your baby: </string>
+    <string name="share_whereis">which is placed in </string>
+    <string name="hope_like">. I hope it is useful</string>
+</resources>
