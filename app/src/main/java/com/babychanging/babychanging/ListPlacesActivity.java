@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.support.v4.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -26,7 +28,7 @@ import android.support.v4.app.Fragment;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
+//import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,7 +49,11 @@ import com.google.android.gms.maps.model.LatLng;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.lang.ref.WeakReference;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -99,7 +105,7 @@ public class ListPlacesActivity extends Activity {
         if(m_DeviceLocation!=null)
         {
 
-            Log.i(TAG, "tengo localizacion");
+            //Log.i(TAG, "tengo localizacion");
 
             latitude = m_DeviceLocation.getLatitude();
             longitude = m_DeviceLocation.getLongitude();
@@ -107,10 +113,10 @@ public class ListPlacesActivity extends Activity {
         }
         else
         {
-            Log.i(TAG, "waiting location....");
+            //Log.i(TAG, "waiting location....");
         }
-        Log.i(TAG, "latitude: "+ String.valueOf(latitude));
-        Log.i(TAG, "longitude: "+  String.valueOf(longitude));
+        //Log.i(TAG, "latitude: "+ String.valueOf(latitude));
+        //Log.i(TAG, "longitude: "+  String.valueOf(longitude));
         int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
         getListBChangings();
 
@@ -135,7 +141,7 @@ public class ListPlacesActivity extends Activity {
                     bundles.putDouble("mylongi", longitude);
                     // Log.e("friend", "is valid");
                 } else {
-                    Log.e("dip", "is null");
+                    //Log.e("dip", "is null");
                 }
 
                 //Call to DetailedBChangingFragment
@@ -168,7 +174,7 @@ public class ListPlacesActivity extends Activity {
                                     int fixedpos = pos;
                                     BChanging dip =  list_changings.get(fixedpos);
                                     addTofavourites(dip, getApplicationContext());
-                                    lv_bchangings.setAdapter(new Adapter(getApplicationContext()     ,R.layout.list_item, list_changings));
+                                    lv_bchangings.setAdapter(new NewAdapter(getApplicationContext()     ,R.layout.list_item, list_changings));
                                     dialog.cancel();
                                 }
                             });
@@ -192,7 +198,7 @@ public class ListPlacesActivity extends Activity {
                                     int fixedpos = pos;
                                     BChanging dip =  list_changings.get(fixedpos);
                                     removeFromfavourites(dip);
-                                    lv_bchangings.setAdapter(new Adapter(getApplicationContext(),R.layout.list_item, list_changings));
+                                    lv_bchangings.setAdapter(new NewAdapter(getApplicationContext(),R.layout.list_item, list_changings));
                                     dialog.cancel();
                                 }
                             });
@@ -271,7 +277,7 @@ public class ListPlacesActivity extends Activity {
 
                 if (gps_loc.getAccuracy() >= net_loc.getAccuracy())
                 {
-                    Log.i(TAG, "chosen Location: "+ "GPS");
+                    //Log.i(TAG, "chosen Location: "+ "GPS");
                     m_DeviceLocation = gps_loc;
                     startpoint = new LatLng(latitude,longitude);
                     application.setStartpoint(startpoint);
@@ -280,7 +286,7 @@ public class ListPlacesActivity extends Activity {
 
                 else
                 {
-                    Log.i(TAG, "chosen Location: "+ "NETWORK");
+                    //Log.i(TAG, "chosen Location: "+ "NETWORK");
                     m_DeviceLocation = net_loc;
                     startpoint = new LatLng(latitude,longitude);
                     application.setStartpoint(startpoint);
@@ -316,7 +322,7 @@ public class ListPlacesActivity extends Activity {
     private class CustomLocationListener implements LocationListener {
 
         public void onLocationChanged(Location argLocation) {
-            Log.i("++++++++++","CustomLocationListener");
+            //Log.i("++++++++++","CustomLocationListener");
             m_DeviceLocation = argLocation;
             latitude = m_DeviceLocation.getLatitude();
             longitude = m_DeviceLocation.getLongitude();
@@ -420,7 +426,7 @@ public class ListPlacesActivity extends Activity {
                             Bitmap bmp;
                             try {
                                 String urlpic = AccessInterface.URL_GETPHOTO + p.getUrlpic();
-                                Log.i("urlpic: ",urlpic);
+                                //Log.i("urlpic: ",urlpic);
                                 bmp = BitmapFactory.decodeStream(new java.net.URL(urlpic).openStream());
                                 if(bmp!=null)img_photo.setImageBitmap(bmp);
                                 else
@@ -434,8 +440,7 @@ public class ListPlacesActivity extends Activity {
                                 // TODO Auto-generated catch block
                                 e1.printStackTrace();
                             }
-                        }
-
+                        }else img_photo.setBackgroundResource(R.drawable.ic_carritoitem_mdpi);
 
 
                     }else img_photo.setBackgroundResource(R.drawable.ic_carritoitem_mdpi);
@@ -456,6 +461,156 @@ public class ListPlacesActivity extends Activity {
 
 
     }
+
+    private class NewAdapter extends ArrayAdapter<BChanging> {
+
+        private ArrayList<BChanging> items;
+        //private DecimalFormat df = new DecimalFormat("0.00");
+
+        public NewAdapter(Context context, int textViewResourceId,
+                       List<BChanging> items) {
+            super(context, textViewResourceId, items);
+            this.items = (ArrayList<BChanging>) items;
+
+        }
+
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            //View v = convertView;
+            ViewHolder holder;
+
+            if (convertView == null) {
+                LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                convertView = vi.inflate(R.layout.list_item, null);
+                holder = new ViewHolder();
+                holder.txt_nameplace = (TextView) convertView.findViewById(R.id.txt_nameplace);
+
+                holder.txt_distance = (TextView) convertView.findViewById(R.id.txt_distance);
+                holder.img_photo = (ImageView)convertView.findViewById(R.id.img_photo);
+                holder.img_fav = (ImageView) convertView.findViewById(R.id.img_fav);
+                convertView.setTag(holder);
+
+
+            }
+            else {
+                holder = (ViewHolder) convertView.getTag();
+            }
+
+            BChanging p = items.get(position);
+            String name = p.getNameplace()+ ", ";
+            String address = p.getProvince();
+
+
+
+            int posstartname = 0;
+            int posendname = name.length();
+            //Log.i("posendname: ", String.valueOf(posendname));
+            //int length_hasbean = hasbeanplace.length();
+
+            Spannable wordtoSpan = new SpannableString(name +  address);
+            wordtoSpan.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.colorPrimary)), posstartname, posendname, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            wordtoSpan.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.colorAccent)), posendname, wordtoSpan.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            holder.txt_nameplace.setText(wordtoSpan);
+            //txt_nameplace.setText(name);
+            //txt_address.setText(address);
+
+            if(p.getDistance()!= null)
+            {
+                holder.txt_distance.setText(String.valueOf(p.getDistance())+ " KM");
+                holder.txt_distance.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
+            }
+
+            if(PersistenceSQL.isFavourite(p.getId(), getContext()))
+            {
+                holder.img_fav.setVisibility(View.VISIBLE);
+            }else holder.img_fav.setVisibility(View.INVISIBLE);
+
+            if (holder.img_photo != null) {
+                if(p.getUrlpic().equals(""))holder.img_photo.setBackgroundResource(R.drawable.ic_carritoitem_mdpi);
+                    else   new ImageDownloaderTask(holder.img_photo).execute(AccessInterface.URL_GETPHOTO + p.getUrlpic());
+            }
+
+
+
+
+
+
+
+
+            return convertView;
+
+        }
+
+
+
+    }
+    private static class ViewHolder {
+
+
+        TextView txt_nameplace;
+        TextView txt_distance;
+        ImageView img_photo;
+        ImageView img_fav;
+    }
+    class ImageDownloaderTask extends AsyncTask<String, Void, Bitmap> {
+        private final WeakReference<ImageView> imageViewReference;
+
+        public ImageDownloaderTask(ImageView imageView) {
+            imageViewReference = new WeakReference<ImageView>(imageView);
+        }
+
+        @Override
+        protected Bitmap doInBackground(String... params) {
+            return downloadBitmap(params[0]);
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+            if (isCancelled()) {
+                bitmap = null;
+            }
+
+            if (imageViewReference != null) {
+                ImageView imageView = imageViewReference.get();
+                if (imageView != null) {
+                    if (bitmap != null) {
+                        imageView.setImageBitmap(bitmap);
+                    } else {
+                        //Drawable placeholder = imageView.getContext().getResources().getDrawable(R.drawable.ic_carritoitem_mdpi);
+                        //imageView.setImageDrawable(placeholder);
+                        imageView.setBackgroundResource(R.drawable.ic_carritoitem_mdpi);
+
+                    }
+                }
+            }
+        }
+    }
+    private Bitmap downloadBitmap(String url) {
+        HttpURLConnection urlConnection = null;
+        try {
+            URL uri = new URL(url);
+            urlConnection = (HttpURLConnection) uri.openConnection();
+            int statusCode = urlConnection.getResponseCode();
+            if (statusCode != HttpURLConnection.HTTP_OK) {
+                return null;
+            }
+
+            InputStream inputStream = urlConnection.getInputStream();
+            if (inputStream != null) {
+                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                return bitmap;
+            }
+        } catch (Exception e) {
+            urlConnection.disconnect();
+            //Log.w("ImageDownloader", "Error downloading image from " + url);
+        } finally {
+            if (urlConnection != null) {
+                urlConnection.disconnect();
+            }
+        }
+        return null;
+    }
     private void getListBChangings()
     {
         pDialog = ProgressDialog.show(this, getString(R.string.info), getString(R.string.loading));
@@ -470,7 +625,7 @@ public class ListPlacesActivity extends Activity {
 
 
         public void run() {
-            Log.i(TAG, "GetAllDips");
+            //Log.i(TAG, "GetAllDips");
 
             int mensajeDevuelto = RESULT_GET_OK;
 
@@ -494,11 +649,11 @@ public class ListPlacesActivity extends Activity {
                 //l_dips.clear();
 
                 list_changings_aux = Utils.orderListByDistance(list_changings,distance, startpoint);
-                Log.i("ordered l_dips : ", String.valueOf(list_changings_aux.size()));
+                //Log.i("ordered l_dips : ", String.valueOf(list_changings_aux.size()));
 
                 list_changings = list_changings_aux;
                 application.setL_bchangings(list_changings);
-                Log.i("list_changings: ", String.valueOf(list_changings.size()));
+                //Log.i("list_changings: ", String.valueOf(list_changings.size()));
 
             }
             else
@@ -521,7 +676,7 @@ public class ListPlacesActivity extends Activity {
         public boolean handleMessage(Message arg0) {
 
             //if(pDialog != null)pDialog.dismiss();
-            Log.i(TAG, "ResultMessageCallback");
+            //Log.i(TAG, "ResultMessageCallback");
 
             switch (arg0.what) {
 
@@ -530,12 +685,12 @@ public class ListPlacesActivity extends Activity {
                 case RESULT_GET_OK:
                     if(pDialog != null)pDialog.dismiss();
 
-                    Log.i(TAG,"RESULT_GET_OK");
+                    //Log.i(TAG,"RESULT_GET_OK");
 
                     if(list_changings.size()>0)
                     {
 
-                        lv_bchangings.setAdapter(new Adapter(getApplicationContext(),R.layout.list_item, list_changings));
+                        lv_bchangings.setAdapter(new NewAdapter(getApplicationContext(),R.layout.list_item, list_changings));
 
 
 
@@ -550,7 +705,7 @@ public class ListPlacesActivity extends Activity {
                     break;
                 case  RESULT_GET_ERROR:
                     if(pDialog != null)pDialog.dismiss();
-                    Log.i(TAG,"RESULT_GET_ERROR");
+                    //Log.i(TAG,"RESULT_GET_ERROR");
                     Utils.showAlert(ListPlacesActivity.this, "",menserror);
 
                     break;

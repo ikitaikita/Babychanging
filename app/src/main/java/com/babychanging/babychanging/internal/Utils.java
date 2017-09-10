@@ -7,7 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.util.Log;
+//import android.util.Log;
 
 import com.babychanging.babychanging.model.BChanging;
 import com.google.android.gms.maps.model.LatLng;
@@ -103,26 +103,26 @@ public class Utils {
 
     public static ArrayList<BChanging> orderListByDistance(ArrayList<BChanging> list_changings, double distance, LatLng startpoint)
     {
-        Log.i("list_changings.size: " , String.valueOf(list_changings.size()));
+        //Log.i("list_changings.size: " , String.valueOf(list_changings.size()));
         ArrayList<BChanging> new_list = new ArrayList<BChanging> ();
         //LatLng startpoint = new LatLng(latitude,longitude);
-        Log.i("startpoint: " , startpoint.toString());
+        //Log.i("startpoint: " , startpoint.toString());
         LatLng endpoint;
         double newdistance;
         Iterator<BChanging> it1 = list_changings.iterator();
         while (it1.hasNext()){
             BChanging tmp = it1.next();
             endpoint = new LatLng(Double.parseDouble(tmp.getLatitude()),Double.parseDouble(tmp.getLongitude()));
-            Log.i("startpoint: " , startpoint.toString());
+            //Log.i("startpoint: " , startpoint.toString());
             newdistance = Utils.calculationByDistanceKM(startpoint, endpoint);
-            Log.i("newdistance: " , String.valueOf(newdistance));
+            //Log.i("newdistance: " , String.valueOf(newdistance));
 
 
             //Log.i(TAG, "orderListByDistance, distance: " +String.valueOf(newdistance));
 
             tmp.setDistance(Math.ceil(newdistance));
             new_list.add(tmp);
-            Log.i("new item added: ", tmp.getId() + " " + String.valueOf(tmp.getDistance()));
+            //Log.i("new item added: ", tmp.getId() + " " + String.valueOf(tmp.getDistance()));
         }
         Collections.sort(new_list, new Comparator<BChanging>() {
             @Override
@@ -155,8 +155,7 @@ public class Utils {
         int kmInDec = Integer.valueOf(newFormat.format(km));
         double meter = valueResult % 1000;
         int meterInDec = Integer.valueOf(newFormat.format(meter));
-        Log.i("Radius Value", "" + valueResult + "   KM  " + kmInDec
-                + " Meter   " + meterInDec);
+        //Log.i("Radius Value", "" + valueResult + "   KM  " + kmInDec                + " Meter   " + meterInDec);
 
         return Radius * c;
     }

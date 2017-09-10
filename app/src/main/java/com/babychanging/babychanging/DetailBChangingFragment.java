@@ -12,7 +12,7 @@ import android.os.Bundle;
 import android.os.StrictMode;
 
 import android.support.v4.app.Fragment;
-import android.util.Log;
+//import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -114,7 +114,7 @@ public class DetailBChangingFragment extends Fragment implements OnClickListener
         } catch (GooglePlayServicesNotAvailableException e) {
             e.printStackTrace();
         }
-        Log.e(TAG, "onCreate");
+        //Log.e(TAG, "onCreate");
 
     }
 
@@ -188,7 +188,7 @@ public class DetailBChangingFragment extends Fragment implements OnClickListener
 
             txt_name.setText(bchanging.getNameplace());
             String type_string = Utils.getStateFromChar(bchanging.getState());
-            Log.i("555555: ", type_string);
+            //Log.i("555555: ", type_string);
             txt_state.setText(type_string);
             if(!bchanging.getAddress().equals(""))txt_address.setText(bchanging.getAddress());
             LatLng coordinate = new LatLng(Double.valueOf(bchanging.getLatitude()), Double.valueOf( bchanging.getLongitude()));
@@ -208,13 +208,13 @@ public class DetailBChangingFragment extends Fragment implements OnClickListener
 
 
     private void drawOnePointOnMap() {
-        Log.i("", "drawOnePointOnMap");
+        //Log.i("", "drawOnePointOnMap");
 
 
         if(bchanging.getLatitude() != null && bchanging.getLongitude() != null)
         {
             LatLng markerPosition = new LatLng (Double.parseDouble(bchanging.getLatitude()) , Double.parseDouble(bchanging.getLongitude()));
-            Log.i("markerPosition: ", markerPosition.toString());
+            //Log.i("markerPosition: ", markerPosition.toString());
 
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerPosition,15));
             String descrip ="";
@@ -305,7 +305,7 @@ public class DetailBChangingFragment extends Fragment implements OnClickListener
             }
         } catch (Exception e) {
             urlConnection.disconnect();
-            Log.w("ImageDownloader", "Error downloading image from " + url);
+            //Log.w("ImageDownloader", "Error downloading image from " + url);
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
@@ -317,20 +317,20 @@ public class DetailBChangingFragment extends Fragment implements OnClickListener
     @Override
     public void onResume() {
         super.onResume();
-        Log.i(TAG, "onResume");
+        //Log.i(TAG, "onResume");
         mMapView.onResume();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        Log.i(TAG, "onPause");
+        //Log.i(TAG, "onPause");
         mMapView.onPause();
     }
 
     @Override
     public void onDestroy() {
-        Log.i(TAG, "onDestroy");
+        //Log.i(TAG, "onDestroy");
         mMapView.onDestroy();
         super.onDestroy();
     }
@@ -418,7 +418,7 @@ public class DetailBChangingFragment extends Fragment implements OnClickListener
             try {
                 data = downloadUrl(url[0]);
             } catch (Exception e) {
-                Log.d("Background Task", e.toString());
+                //Log.d("Background Task", e.toString());
             }
             return data;
         }
@@ -561,7 +561,7 @@ public class DetailBChangingFragment extends Fragment implements OnClickListener
             br.close();
 
         } catch (Exception e) {
-            Log.d("Exception", e.toString());
+            //Log.d("Exception", e.toString());
         } finally {
             iStream.close();
             urlConnection.disconnect();

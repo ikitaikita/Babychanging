@@ -1,6 +1,6 @@
 package com.babychanging.babychanging.internal;
 
-import android.util.Log;
+//import android.util.Log;
 
 import com.babychanging.babychanging.model.BChanging;
 
@@ -47,7 +47,7 @@ public class AccessInterface {
             // request method is POST
             try {
                 urlObj = new URL(url);
-                Log.i("ACCESO POST: ", urlObj.toString());
+                //Log.i("ACCESO POST: ", urlObj.toString());
 
                 conn = (HttpURLConnection) urlObj.openConnection();
 
@@ -92,7 +92,7 @@ public class AccessInterface {
             try {
 
                 urlObj = new URL(url);
-                Log.i("ACCESO GET: ", urlObj.toString());
+                //Log.i("ACCESO GET: ", urlObj.toString());
 
                 conn = (HttpURLConnection) urlObj.openConnection();
 
@@ -120,31 +120,31 @@ public class AccessInterface {
             //Receive the response from the server
             //StringBuilder sb = new StringBuilder();
             int HttpResult = conn.getResponseCode();
-            Log.i("HttpResult", String.valueOf(HttpResult));
+            //Log.i("HttpResult", String.valueOf(HttpResult));
             if (HttpResult == HttpURLConnection.HTTP_OK) {
                 BufferedReader br = new BufferedReader(
                         new InputStreamReader(conn.getInputStream(), "utf-8"));
                 String line = null;
                 while ((line = br.readLine()) != null) {
-                    Log.i("line: ", line);
+                    //Log.i("line: ", line);
                     result.append(line + "\n");
                 }
                 br.close();
-                Log.i("", result.toString());
+                //Log.i("", result.toString());
                 System.out.println("" + result.toString());
             } else {
 
 
-                Log.e("error:", conn.getResponseMessage());
+                //Log.e("error:", conn.getResponseMessage());
                 BufferedReader br = new BufferedReader(
                         new InputStreamReader(conn.getErrorStream(), "utf-8"));
                 String line = null;
                 while ((line = br.readLine()) != null) {
-                    Log.i("line: ", line);
+                    //Log.i("line: ", line);
                     result.append(line + "\n");
                 }
                 br.close();
-                Log.i("", result.toString());
+                //Log.i("", result.toString());
                 System.out.println(conn.getResponseMessage());
             }
 
@@ -178,7 +178,7 @@ public class AccessInterface {
             jObj = new JSONObject(result.toString());
 
         } catch (JSONException e) {
-            Log.e("JSON Parser", "Error parsing data " + e.toString());
+            //Log.e("JSON Parser", "Error parsing data " + e.toString());
         }
 
         // return JSON Object
@@ -222,7 +222,7 @@ public class AccessInterface {
 
                     bchangingList.add(dip);
 
-                    Log.i(TAG, "bchanging added: " + dip.getId());
+                    //Log.i(TAG, "bchanging added: " + dip.getId());
             }
 
 

@@ -17,11 +17,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AlertDialog;
+import android.app.AlertDialog;
 import android.util.Base64;
-import android.util.Log;
+//import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -45,7 +46,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
     private Button    btn_upload;
     private EditText edt_nameplace;
 
-    private ProgressDialog pDialog;
+   // private ProgressDialog pDialogx;
     private Handler handler = new Handler(new ResultMessageCallback());
     private String menserror="Error";
 
@@ -80,7 +81,8 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload);
-
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         //Request Permissions for Android 6.0
         requestLocationPermission();
@@ -115,28 +117,30 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
             break;
             case R.id.btn_upload:
             {
-                new AlertDialog.Builder(this)
-                        .setTitle(R.string.title)
-                        .setSingleChoiceItems(Utils.choices, 0, null)
-                        .setPositiveButton(R.string.ok_button_label, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int whichButton) {
-                                dialog.dismiss();
-                                int selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
-                                Log.i("seleccion: ", String.valueOf(selectedPosition));
-                                state = getState(selectedPosition);
-                                Log.i("state: ", state);
-                                uploadData();
-                                gotoMainScreen();
-                                // Do something useful withe the position of the selected radio button
-                            }
-                        })
-                        .setNegativeButton(R.string.cancel_button_label, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int whichButton) {
-                                dialog.dismiss();
+                if(edt_nameplace.length()!= 0  || bitmapdata != null)
+                {
+                    new AlertDialog.Builder(this)
+                            .setTitle(R.string.title)
+                            .setSingleChoiceItems(Utils.choices, 0, null)
+                            .setPositiveButton(R.string.ok_button_label, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    dialog.dismiss();
+                                    int selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
+                                    //Log.i("seleccion: ", String.valueOf(selectedPosition));
+                                    state = getState(selectedPosition);
+                                    //Log.i("state: ", state);
+                                    uploadData();
+                                    gotoMainScreen();
+                                    // Do something useful withe the position of the selected radio button
+                                }
+                            })
+                            .setNegativeButton(R.string.cancel_button_label, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    dialog.dismiss();
 
-                            }
-                        })
-                        .setCancelable(true)
+                                }
+                            })
+                            .setCancelable(true)
                         /*.setNegativeButton(R.string.no_button_label,
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
@@ -144,7 +148,13 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
                                         gotoMainScreen();
                                     }
                                 })*/
-                        .show();
+                            .show();
+                }else
+                {
+                    Utils.showAlert(this,"", "Please introduce a name or a pic for the place and try again. Thanks");
+
+                }
+
 
             }
             break;
@@ -253,7 +263,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
 
             String path = getRealPathFromURI(selectedImage);
             namePhoto = path;
-            Log.i("namePhoto: ",namePhoto);
+            //Log.i("namePhoto: ",namePhoto);
 
             try {
 
@@ -306,7 +316,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
 
     private void uploadData()
     {
-        pDialog = ProgressDialog.show(UploadActivity.this, getString(R.string.info), getString(R.string.loading));
+        //pDialogx = ProgressDialog.show(this,"Info", "Uploading...");
         Thread thread = new Thread(new UploadData());
         thread.start();
 
@@ -314,7 +324,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
     private class CustomLocationListener implements LocationListener {
 
         public void onLocationChanged(Location argLocation) {
-            Log.i("++++++++++","CustomLocationListener");
+            //Log.i("++++++++++","CustomLocationListener");
             m_DeviceLocation = argLocation;
             latitude = m_DeviceLocation.getLatitude();
             longitude = m_DeviceLocation.getLongitude();
@@ -386,7 +396,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
 
                 if (gps_loc.getAccuracy() >= net_loc.getAccuracy())
                 {
-                    Log.i(TAG, "chosen Location: "+ "GPS");
+                    //Log.i(TAG, "chosen Location: "+ "GPS");
                     m_DeviceLocation = gps_loc;
                     /*startpoint = new LatLng(latitude,longitude);
                     application.setStartpoint(startpoint);*/
@@ -395,7 +405,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
 
                 else
                 {
-                    Log.i(TAG, "chosen Location: "+ "NETWORK");
+                    //Log.i(TAG, "chosen Location: "+ "NETWORK");
                     m_DeviceLocation = net_loc;
                     /*startpoint = new LatLng(latitude,longitude);
                     application.setStartpoint(startpoint);*/
@@ -422,7 +432,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
 
 
         public void run() {
-            Log.i(TAG, "UploadData");
+            //Log.i(TAG, "UploadData");
 
             int mensajeDevuelto = RESULT_UPLOAD_OK;
 
@@ -458,7 +468,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
                 request.put("state", state);
                 request.put("province", "");
                 request.put("address", "");
-                Log.i("json request: ", request.toString());
+                //Log.i("json request: ", request.toString());
 
 
 
@@ -468,9 +478,10 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
                     //  if(jsonresponse.has("code")){
 
                     //String code = jsonresponse.getString("code");
-                    Log.i("jsonresponse: ", jsonresponse.toString());
+                    //Log.i("jsonresponse: ", jsonresponse.toString());
                     if(jsonresponse.has("result"))
                     {
+                        mensajeDevuelto = RESULT_UPLOAD_OK;
 
                     }else mensajeDevuelto = RESULT_UPLOAD_ERROR;
 
@@ -503,25 +514,43 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
 
         public boolean handleMessage(Message arg0) {
 
-            if(pDialog != null)pDialog.dismiss();
-            Log.i(TAG, "ResultMessageCallback");
+
+            //Log.i(TAG, "ResultMessageCallback");
 
             switch (arg0.what) {
 
 
 
                 case RESULT_UPLOAD_OK:
+                    //if(pDialogx != null)pDialogx.dismiss();
+
+                    //Log.i(TAG,"RESULT_GET_OK");
+                   // String messageout = getResources().getString(R.string.successfull_load);
+
+                    //Utils.showAlert(UploadActivity.this, "",messageout);
+                    /*AlertDialog.Builder alert = new android.app.AlertDialog.Builder(UploadActivity.this);
+
+                    alert.setMessage(messageout);
+                    alert.setCancelable(true);
+
+                    alert.setPositiveButton(
+                            "OK",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+
+                                }
+                            });
 
 
-                    Log.i(TAG,"RESULT_GET_OK");
-
-                    Utils.showAlert(UploadActivity.this, "",getResources().getString(R.string.successfull_load));
+                    android.app.AlertDialog alertDialog = alert.create();
+                    alertDialog.show();*/
 
 
                     break;
                 case  RESULT_UPLOAD_ERROR:
 
-                    Log.i(TAG,"RESULT_GET_ERROR");
+                    //Log.i(TAG,"RESULT_GET_ERROR");
                     Utils.showAlert(UploadActivity.this, "",getResources().getString(R.string.error_upload));
 
                     break;

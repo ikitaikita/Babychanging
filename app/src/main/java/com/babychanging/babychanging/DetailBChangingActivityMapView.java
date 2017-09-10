@@ -12,7 +12,7 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
+//import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -123,7 +123,7 @@ public class DetailBChangingActivityMapView extends FragmentActivity implements 
         }
 
 
-        Log.e(TAG, "onCreate");
+        //Log.e(TAG, "onCreate");
 
 
 
@@ -199,7 +199,7 @@ public class DetailBChangingActivityMapView extends FragmentActivity implements 
 
             txt_name.setText(bchanging.getNameplace());
             String type_string = Utils.getStateFromChar(bchanging.getState());
-            Log.i("555555: ", type_string);
+            //Log.i("555555: ", type_string);
             txt_state.setText(type_string);
             if(!bchanging.getAddress().equals(""))txt_address.setText(bchanging.getAddress());
             LatLng coordinate = new LatLng(Double.valueOf(bchanging.getLatitude()), Double.valueOf( bchanging.getLongitude()));
@@ -217,7 +217,7 @@ public class DetailBChangingActivityMapView extends FragmentActivity implements 
                         Bitmap bmp;
                         try {
                             String urlpic = AccessInterface.URL_GETPHOTO + bchanging.getUrlpic();
-                            Log.i("urlpic: ",urlpic);
+                            //Log.i("urlpic: ",urlpic);
                             bmp = BitmapFactory.decodeStream(new URL(urlpic).openStream());
                             if(bmp!=null)img_pic.setImageBitmap(bmp);
                             else
@@ -272,13 +272,13 @@ public class DetailBChangingActivityMapView extends FragmentActivity implements 
 
 
     private void drawOnePointOnMap() {
-        Log.i("", "drawOnePointOnMap");
+        //Log.i("", "drawOnePointOnMap");
 
 
         if(bchanging.getLatitude() != null && bchanging.getLongitude() != null)
         {
             LatLng markerPosition = new LatLng (Double.parseDouble(bchanging.getLatitude()) , Double.parseDouble(bchanging.getLongitude()));
-            Log.i("markerPosition: ", markerPosition.toString());
+            //Log.i("markerPosition: ", markerPosition.toString());
 
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerPosition,15));
             String descrip ="";
@@ -369,7 +369,7 @@ public class DetailBChangingActivityMapView extends FragmentActivity implements 
             }
         } catch (Exception e) {
             urlConnection.disconnect();
-            Log.w("ImageDownloader", "Error downloading image from " + url);
+            //Log.w("ImageDownloader", "Error downloading image from " + url);
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
@@ -381,20 +381,20 @@ public class DetailBChangingActivityMapView extends FragmentActivity implements 
     @Override
     public void onResume() {
         super.onResume();
-        Log.i(TAG, "onResume");
+        //Log.i(TAG, "onResume");
         mMapView.onResume();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        Log.i(TAG, "onPause");
+        //Log.i(TAG, "onPause");
         mMapView.onPause();
     }
 
     @Override
     public void onDestroy() {
-        Log.i(TAG, "onDestroy");
+        //Log.i(TAG, "onDestroy");
         super.onDestroy();
         mMapView.onDestroy();
 
@@ -496,7 +496,7 @@ public class DetailBChangingActivityMapView extends FragmentActivity implements 
             try {
                 data = downloadUrl(url[0]);
             } catch (Exception e) {
-                Log.d("Background Task", e.toString());
+                //Log.d("Background Task", e.toString());
             }
             return data;
         }
@@ -639,7 +639,7 @@ public class DetailBChangingActivityMapView extends FragmentActivity implements 
             br.close();
 
         } catch (Exception e) {
-            Log.d("Exception", e.toString());
+            //Log.d("Exception", e.toString());
         } finally {
             iStream.close();
             urlConnection.disconnect();
