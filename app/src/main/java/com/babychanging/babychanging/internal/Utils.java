@@ -34,6 +34,9 @@ public class Utils {
     public static final int REQUEST_LOCATION = 0;
     public static String[] PERMISSIONS_LOCATION = {android.Manifest.permission.ACCESS_COARSE_LOCATION, android.Manifest.permission.ACCESS_FINE_LOCATION};
 
+    public static final double MY_LATITUDE = 42.598726;
+    public static final double MY_LONGITUDE = -5.567096;
+
 
 
 

@@ -4,9 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.support.v4.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -24,7 +22,6 @@ import android.os.StrictMode;
 import android.support.v4.app.ActivityCompat;
 
 
-import android.support.v4.app.Fragment;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
@@ -59,26 +56,26 @@ import java.util.List;
 
 public class ListPlacesActivity extends Activity {
 
-    public static final String TAG = "ListPlacesActivity";
-
-    private ListView lv_bchangings;
-    private ArrayList<BChanging> list_changings = new ArrayList();
-    private ArrayList<BChanging> list_changings_aux = new ArrayList();
-    private ArrayList<BChanging> l_favourites= new ArrayList<BChanging>();
-    private MyApplication application;
-
-    private ProgressDialog pDialog;
-    private Handler handler = new Handler(new ResultMessageCallback());
+    public static final String TAG = ListPlacesActivity.class.getSimpleName();
     public final int RESULT_GET_ERROR = -1;
     public final int RESULT_GET_OK = 1;
-    private String menserror = "Error";
+
+    private ListView mLv_bchangings;
+    private ArrayList<BChanging> mList_changings = new ArrayList();
+    private ArrayList<BChanging> mList_changings_aux = new ArrayList();
+    private ArrayList<BChanging> mL_favourites= new ArrayList<BChanging>();
+    private MyApplication mApplication;
+
+    private ProgressDialog mDialog;
+    private Handler mHandler = new Handler(new ResultMessageCallback());
+
+    private String mError = "Error";
 
     //GPS
-
-    private LatLng startpoint;
-    CustomLocationListener customLocationListener = new CustomLocationListener();
-    private Location m_DeviceLocation = null;
+    private LatLng mStartpoint;
+    private Location mDeviceLocation = null;
     private LocationManager mLocationManager;
+    CustomLocationListener customLocationListener = new CustomLocationListener();
     boolean gps_enabled = false;
     boolean network_enabled = false;
     private double latitude = 42.598726;
@@ -93,8 +90,8 @@ public class ListPlacesActivity extends Activity {
         setContentView(R.layout.activity_list_places);
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-        application = (MyApplication) getApplicationContext();
-        lv_bchangings = (ListView)findViewById(R.id.list);
+        mApplication = (MyApplication) getApplicationContext();
+        mLv_bchangings = (ListView)findViewById(R.id.list);
 
         //CustomLocationListener customLocationListener = new CustomLocationListener();
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -102,13 +99,13 @@ public class ListPlacesActivity extends Activity {
         requestLocationPermission();
 
 
-        if(m_DeviceLocation!=null)
+        if(mDeviceLocation!=null)
         {
 
             //Log.i(TAG, "tengo localizacion");
 
-            latitude = m_DeviceLocation.getLatitude();
-            longitude = m_DeviceLocation.getLongitude();
+            latitude = mDeviceLocation.getLatitude();
+            longitude = mDeviceLocation.getLongitude();
 
         }
         else
@@ -120,7 +117,7 @@ public class ListPlacesActivity extends Activity {
         int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
         getListBChangings();
 
-        lv_bchangings.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mLv_bchangings.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
@@ -132,7 +129,7 @@ public class ListPlacesActivity extends Activity {
 
 
                 Bundle bundles = new Bundle();
-                BChanging bchanging =  list_changings.get(fixedpos);
+                BChanging bchanging =  mList_changings.get(fixedpos);
 
                 // ensure your object has not null
                 if (bchanging != null) {
@@ -145,7 +142,7 @@ public class ListPlacesActivity extends Activity {
                 }
 
                 //Call to DetailedBChangingFragment
-                Intent intent = new Intent(ListPlacesActivity.this, DetailBChangingActivityMapView.class);
+                Intent intent = new Intent(ListPlacesActivity.this, DetailBChangingFragmentActivity.class);
 
                 intent.putExtras(bundles); //Put your id to your next Intent
                 startActivity(intent);
@@ -156,11 +153,11 @@ public class ListPlacesActivity extends Activity {
             }
         });
 
-        lv_bchangings.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        mLv_bchangings.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 final int pos =  position;
-                BChanging bchanging =  list_changings.get(pos);
+                BChanging bchanging =  mList_changings.get(pos);
                 AlertDialog.Builder builder1 = new AlertDialog.Builder(getApplicationContext());
                 if(!PersistenceSQL.isFavourite(bchanging.getId(), getApplicationContext()))
                 {
@@ -172,9 +169,9 @@ public class ListPlacesActivity extends Activity {
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
                                     int fixedpos = pos;
-                                    BChanging dip =  list_changings.get(fixedpos);
+                                    BChanging dip =  mList_changings.get(fixedpos);
                                     addTofavourites(dip, getApplicationContext());
-                                    lv_bchangings.setAdapter(new NewAdapter(getApplicationContext()     ,R.layout.list_item, list_changings));
+                                    mLv_bchangings.setAdapter(new NewAdapter(getApplicationContext()     ,R.layout.item_list, mList_changings));
                                     dialog.cancel();
                                 }
                             });
@@ -196,9 +193,9 @@ public class ListPlacesActivity extends Activity {
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
                                     int fixedpos = pos;
-                                    BChanging dip =  list_changings.get(fixedpos);
+                                    BChanging dip =  mList_changings.get(fixedpos);
                                     removeFromfavourites(dip);
-                                    lv_bchangings.setAdapter(new NewAdapter(getApplicationContext(),R.layout.list_item, list_changings));
+                                    mLv_bchangings.setAdapter(new NewAdapter(getApplicationContext(),R.layout.item_list, mList_changings));
                                     dialog.cancel();
                                 }
                             });
@@ -278,18 +275,18 @@ public class ListPlacesActivity extends Activity {
                 if (gps_loc.getAccuracy() >= net_loc.getAccuracy())
                 {
                     //Log.i(TAG, "chosen Location: "+ "GPS");
-                    m_DeviceLocation = gps_loc;
-                    startpoint = new LatLng(latitude,longitude);
-                    application.setStartpoint(startpoint);
+                    mDeviceLocation = gps_loc;
+                    mStartpoint = new LatLng(latitude,longitude);
+                    mApplication.setStartpoint(mStartpoint);
 
                 }
 
                 else
                 {
                     //Log.i(TAG, "chosen Location: "+ "NETWORK");
-                    m_DeviceLocation = net_loc;
-                    startpoint = new LatLng(latitude,longitude);
-                    application.setStartpoint(startpoint);
+                    mDeviceLocation = net_loc;
+                    mStartpoint = new LatLng(latitude,longitude);
+                    mApplication.setStartpoint(mStartpoint);
                 }
 
 
@@ -298,9 +295,9 @@ public class ListPlacesActivity extends Activity {
             } else {
 
                 if (gps_loc != null) {
-                    m_DeviceLocation = net_loc;
+                    mDeviceLocation = net_loc;
                 } else if (net_loc != null) {
-                    m_DeviceLocation = gps_loc;
+                    mDeviceLocation = gps_loc;
                 }
             }
             return;
@@ -310,12 +307,12 @@ public class ListPlacesActivity extends Activity {
     {
         PersistenceSQL.insertDip(context, bchanging);
         Utils.showAlert(context, "", "favourite baby changing already added");
-        l_favourites = PersistenceSQL.getFavourites(this);
-        application.setL_favourites(l_favourites);
+        mL_favourites = PersistenceSQL.getFavourites(this);
+        mApplication.setL_favourites(mL_favourites);
 
-        /*l_favourites = application.getL_favourites();
-        if(!l_favourites.contains(dip))l_favourites.add(dip);
-        application.setL_favourites(l_favourites);*/
+        /*mL_favourites = application.getmL_favourites();
+        if(!mL_favourites.contains(dip))mL_favourites.add(dip);
+        application.setmL_favourites(mL_favourites);*/
 
     }
 
@@ -323,11 +320,11 @@ public class ListPlacesActivity extends Activity {
 
         public void onLocationChanged(Location argLocation) {
             //Log.i("++++++++++","CustomLocationListener");
-            m_DeviceLocation = argLocation;
-            latitude = m_DeviceLocation.getLatitude();
-            longitude = m_DeviceLocation.getLongitude();
-            startpoint = new LatLng(latitude,longitude);
-            application.setStartpoint(startpoint);
+            mDeviceLocation = argLocation;
+            latitude = mDeviceLocation.getLatitude();
+            longitude = mDeviceLocation.getLongitude();
+            mStartpoint = new LatLng(latitude,longitude);
+            mApplication.setStartpoint(mStartpoint);
 
 
 
@@ -348,8 +345,8 @@ public class ListPlacesActivity extends Activity {
     {
         PersistenceSQL.deleteDip(bchanging.getId(),this);
         Utils.showAlert(this, "", "baby changing already deleted");
-        l_favourites = PersistenceSQL.getFavourites(this);
-        application.setL_favourites(l_favourites);
+        mL_favourites = PersistenceSQL.getFavourites(this);
+        mApplication.setL_favourites(mL_favourites);
 
 
 
@@ -375,7 +372,7 @@ public class ListPlacesActivity extends Activity {
 
             if (v == null) {
                 LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                v = vi.inflate(R.layout.list_item, null);
+                v = vi.inflate(R.layout.item_list, null);
             }
 
             final BChanging p = items.get(position);
@@ -431,7 +428,7 @@ public class ListPlacesActivity extends Activity {
                                 if(bmp!=null)img_photo.setImageBitmap(bmp);
                                 else
                                 {
-                                    img_photo.setBackgroundResource(R.drawable.ic_carritoitem_mdpi);
+                                    img_photo.setBackgroundResource(R.drawable.ic_noimage_small);
                                 }
                             } catch (MalformedURLException e1) {
                                 // TODO Auto-generated catch block
@@ -440,10 +437,10 @@ public class ListPlacesActivity extends Activity {
                                 // TODO Auto-generated catch block
                                 e1.printStackTrace();
                             }
-                        }else img_photo.setBackgroundResource(R.drawable.ic_carritoitem_mdpi);
+                        }else img_photo.setBackgroundResource(R.drawable.ic_noimage_small);
 
 
-                    }else img_photo.setBackgroundResource(R.drawable.ic_carritoitem_mdpi);
+                    }else img_photo.setBackgroundResource(R.drawable.ic_noimage_small);
                 }
 
                 if(PersistenceSQL.isFavourite(p.getId(), getContext()))
@@ -482,7 +479,7 @@ public class ListPlacesActivity extends Activity {
 
             if (convertView == null) {
                 LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                convertView = vi.inflate(R.layout.list_item, null);
+                convertView = vi.inflate(R.layout.item_list, null);
                 holder = new ViewHolder();
                 holder.txt_nameplace = (TextView) convertView.findViewById(R.id.txt_nameplace);
 
@@ -527,7 +524,7 @@ public class ListPlacesActivity extends Activity {
             }else holder.img_fav.setVisibility(View.INVISIBLE);
 
             if (holder.img_photo != null) {
-                if(p.getUrlpic().equals(""))holder.img_photo.setBackgroundResource(R.drawable.ic_carritoitem_mdpi);
+                if(p.getUrlpic().equals(""))holder.img_photo.setBackgroundResource(R.drawable.ic_noimage_small);
                     else   new ImageDownloaderTask(holder.img_photo).execute(AccessInterface.URL_GETPHOTO + p.getUrlpic());
             }
 
@@ -579,7 +576,7 @@ public class ListPlacesActivity extends Activity {
                     } else {
                         //Drawable placeholder = imageView.getContext().getResources().getDrawable(R.drawable.ic_carritoitem_mdpi);
                         //imageView.setImageDrawable(placeholder);
-                        imageView.setBackgroundResource(R.drawable.ic_carritoitem_mdpi);
+                        imageView.setBackgroundResource(R.drawable.ic_noimage_small);
 
                     }
                 }
@@ -613,7 +610,7 @@ public class ListPlacesActivity extends Activity {
     }
     private void getListBChangings()
     {
-        pDialog = ProgressDialog.show(this, getString(R.string.info), getString(R.string.loading));
+        mDialog = ProgressDialog.show(this, getString(R.string.info), getString(R.string.loading));
         Thread thread = new Thread(new GetAllBChangings());
         thread.start();
 
@@ -632,7 +629,7 @@ public class ListPlacesActivity extends Activity {
 
             JSONObject jsonresponse = null;
 
-            //String url = "places/"+latitude+"/"+longitude+"?"+"token="+ application.getTokenapp();
+            //String url = "places/"+latitude+"/"+longitude+"?"+"token="+ mApplication.getTokenapp();
             String url = AccessInterface.URL_GETALL;
             jsonresponse = AccessInterface.sendJSON(url, null, "GET");
             if(jsonresponse!=null)
@@ -642,18 +639,18 @@ public class ListPlacesActivity extends Activity {
                 //String code = jsonresponse.getString("code");
 
 
-                list_changings = AccessInterface.getListDips(jsonresponse);
+                mList_changings = AccessInterface.getListDips(jsonresponse);
                 double distance = 0;
                 //l_dips_aux = l_dips;
 
                 //l_dips.clear();
 
-                list_changings_aux = Utils.orderListByDistance(list_changings,distance, startpoint);
-                //Log.i("ordered l_dips : ", String.valueOf(list_changings_aux.size()));
+                mList_changings_aux = Utils.orderListByDistance(mList_changings,distance, mStartpoint);
+                //Log.i("ordered l_dips : ", String.valueOf(mList_changings_aux.size()));
 
-                list_changings = list_changings_aux;
-                application.setL_bchangings(list_changings);
-                //Log.i("list_changings: ", String.valueOf(list_changings.size()));
+                mList_changings = mList_changings_aux;
+                mApplication.setL_bchangings(mList_changings);
+                //Log.i("mList_changings: ", String.valueOf(mList_changings.size()));
 
             }
             else
@@ -667,7 +664,6 @@ public class ListPlacesActivity extends Activity {
 
 
 
-            handler.sendEmptyMessage(mensajeDevuelto);
         }
     }
 
@@ -675,7 +671,7 @@ public class ListPlacesActivity extends Activity {
 
         public boolean handleMessage(Message arg0) {
 
-            //if(pDialog != null)pDialog.dismiss();
+            //if(mDialog != null)mDialog.dismiss();
             //Log.i(TAG, "ResultMessageCallback");
 
             switch (arg0.what) {
@@ -683,14 +679,14 @@ public class ListPlacesActivity extends Activity {
 
 
                 case RESULT_GET_OK:
-                    if(pDialog != null)pDialog.dismiss();
+                    if(mDialog != null)mDialog.dismiss();
 
                     //Log.i(TAG,"RESULT_GET_OK");
 
-                    if(list_changings.size()>0)
+                    if(mList_changings.size()>0)
                     {
 
-                        lv_bchangings.setAdapter(new NewAdapter(getApplicationContext(),R.layout.list_item, list_changings));
+                        mLv_bchangings.setAdapter(new NewAdapter(getApplicationContext(),R.layout.item_list, mList_changings));
 
 
 
@@ -704,9 +700,9 @@ public class ListPlacesActivity extends Activity {
 
                     break;
                 case  RESULT_GET_ERROR:
-                    if(pDialog != null)pDialog.dismiss();
+                    if(mDialog != null)mDialog.dismiss();
                     //Log.i(TAG,"RESULT_GET_ERROR");
-                    Utils.showAlert(ListPlacesActivity.this, "",menserror);
+                    Utils.showAlert(ListPlacesActivity.this, "",mError);
 
                     break;
 

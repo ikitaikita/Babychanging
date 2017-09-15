@@ -41,38 +41,41 @@ import java.io.ByteArrayOutputStream;
 
 public class UploadActivity extends Activity  implements View.OnClickListener{
 
-    private static String TAG ="UploadActivity";
-    private ImageView img_camera;
-    private Button    btn_upload;
-    private EditText edt_nameplace;
 
-   // private ProgressDialog pDialogx;
-    private Handler handler = new Handler(new ResultMessageCallback());
-    private String menserror="Error";
-
+    private static String TAG =UploadActivity.class.getSimpleName();
     private final int RESULT_UPLOAD_OK= 1;
     private final int RESULT_UPLOAD_ERROR = -1;
-    private String state ="";
+    private static int TAKE_PICTURE = 2;
+    private static final int SELECT_PICTURE = 3;
+    private ImageView mImg_camera;
+    private Button    mBtn_upload;
+    private EditText mEdt_nameplace;
+
+   // private ProgressDialog pDialogx;
+    private Handler mHandler = new Handler(new ResultMessageCallback());
+    private String mError="Error";
+
+
+    private String mState ="";
 
     //GPS
 
-    private LatLng startpoint;
+    private LatLng mStartpoint;
     CustomLocationListener customLocationListener = new CustomLocationListener();
-    private Location m_DeviceLocation = null;
+    private Location mDeviceLocation = null;
     private LocationManager mLocationManager;
     boolean gps_enabled = false;
     boolean network_enabled = false;
-    private double latitude = 42.598726;
-    private double longitude = -5.567096;
+    private double latitude;
+    private double longitude;
 
     //Camera, Gallery
-    private static int TAKE_PICTURE = 2;
-    private static final int SELECT_PICTURE = 3;
-    private String nameCap = "";
-    private String namePhoto ="";
-    private byte[] bitmapdata = null; //image
-    private String encodedBase64 = "";
-    private StringBuilder stringBuilder = null;
+
+    private String mNameCap = "";
+    private String mNamePhoto ="";
+    private byte[] mBitmapdata = null; //image
+    private String mEncodedBase64 = "";
+    private StringBuilder mStringBuilder = null;
 
 
 
@@ -94,11 +97,11 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
         }*/
 
 
-        img_camera = (ImageView)findViewById(R.id.img_camera);
-        btn_upload = (Button)findViewById(R.id.btn_upload);
-        edt_nameplace = (EditText) findViewById(R.id.edt_nameplace);
-        img_camera.setOnClickListener(this);
-        btn_upload.setOnClickListener(this);
+        mImg_camera = (ImageView)findViewById(R.id.img_camera);
+        mBtn_upload = (Button)findViewById(R.id.btn_upload);
+        mEdt_nameplace = (EditText) findViewById(R.id.edt_nameplace);
+        mImg_camera.setOnClickListener(this);
+        mBtn_upload.setOnClickListener(this);
     }
 
     @Override
@@ -117,7 +120,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
             break;
             case R.id.btn_upload:
             {
-                if(edt_nameplace.length()!= 0  || bitmapdata != null)
+                if(mEdt_nameplace.length()!= 0  || mBitmapdata != null)
                 {
                     new AlertDialog.Builder(this)
                             .setTitle(R.string.title)
@@ -127,7 +130,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
                                     dialog.dismiss();
                                     int selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
                                     //Log.i("seleccion: ", String.valueOf(selectedPosition));
-                                    state = getState(selectedPosition);
+                                    mState = getState(selectedPosition);
                                     //Log.i("state: ", state);
                                     uploadData();
                                     gotoMainScreen();
@@ -215,7 +218,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
         /////
 
         ContentValues values = new ContentValues();
-        values.put(MediaStore.Images.Media.TITLE, nameCap);
+        values.put(MediaStore.Images.Media.TITLE, mNameCap);
         Uri mCapturedImageURI  = this.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
 
         Intent camaraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
@@ -244,13 +247,13 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
                     newbitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos);
                     //ImageView imgReceipt = (ImageView) findViewById(R.id.img_photo);
                     //roundImage(newbitmap);
-                    img_camera.setImageBitmap(newbitmap);
+                    mImg_camera.setImageBitmap(newbitmap);
 
 
 
 
 
-                    bitmapdata = bos.toByteArray();
+                    mBitmapdata = bos.toByteArray();
 
                     //bitmap.compress(Bitmap.CompressFormat.JPEG, 75, stream);
 
@@ -262,7 +265,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
             Uri selectedImage = data.getData();
 
             String path = getRealPathFromURI(selectedImage);
-            namePhoto = path;
+            mNamePhoto = path;
             //Log.i("namePhoto: ",namePhoto);
 
             try {
@@ -276,10 +279,10 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
                 Bitmap newbitmap = Utils.resizeImageToMax(bitmap,400,400);
                 newbitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos);
                 //bitmap.compress(CompressFormat.JPEG, 100, bos);
-                bitmapdata = bos.toByteArray();
+                mBitmapdata = bos.toByteArray();
                 //ImageView imgReceipt = (ImageView) findViewById(R.id.img_photo);
                 //bitmap.compress(Bitmap.CompressFormat.JPEG, 75, stream);
-                img_camera.setImageBitmap(newbitmap);
+                mImg_camera.setImageBitmap(newbitmap);
                 //roundImage(newbitmap);
 
             } catch (Exception e) {
@@ -325,9 +328,9 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
 
         public void onLocationChanged(Location argLocation) {
             //Log.i("++++++++++","CustomLocationListener");
-            m_DeviceLocation = argLocation;
-            latitude = m_DeviceLocation.getLatitude();
-            longitude = m_DeviceLocation.getLongitude();
+            mDeviceLocation = argLocation;
+            latitude = mDeviceLocation.getLatitude();
+            longitude = mDeviceLocation.getLongitude();
            /* startpoint = new LatLng(latitude,longitude);
             application.setStartpoint(startpoint);*/
 
@@ -397,7 +400,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
                 if (gps_loc.getAccuracy() >= net_loc.getAccuracy())
                 {
                     //Log.i(TAG, "chosen Location: "+ "GPS");
-                    m_DeviceLocation = gps_loc;
+                    mDeviceLocation = gps_loc;
                     /*startpoint = new LatLng(latitude,longitude);
                     application.setStartpoint(startpoint);*/
 
@@ -406,7 +409,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
                 else
                 {
                     //Log.i(TAG, "chosen Location: "+ "NETWORK");
-                    m_DeviceLocation = net_loc;
+                    mDeviceLocation = net_loc;
                     /*startpoint = new LatLng(latitude,longitude);
                     application.setStartpoint(startpoint);*/
                 }
@@ -417,9 +420,9 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
             } else {
 
                 if (gps_loc != null) {
-                    m_DeviceLocation = net_loc;
+                    mDeviceLocation = net_loc;
                 } else if (net_loc != null) {
-                    m_DeviceLocation = gps_loc;
+                    mDeviceLocation = gps_loc;
                 }
             }
             return;
@@ -441,31 +444,31 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
 
             //String url = "places/"+latitude+"/"+longitude+"?"+"token="+ application.getTokenapp();
             String url = AccessInterface.URL_PUTPLACE;
-            stringBuilder = new StringBuilder();
-            if(bitmapdata != null)
+            mStringBuilder = new StringBuilder();
+            if(mBitmapdata != null)
             {
                 //prueba = Base64.encode(bitmapdata, Base64.DEFAULT);
-                encodedBase64 = Base64.encodeToString(bitmapdata, Base64.DEFAULT);
+                mEncodedBase64 = Base64.encodeToString(mBitmapdata, Base64.DEFAULT);
 
-                stringBuilder.append("data:image/jpeg;base64,");
-                stringBuilder.append(encodedBase64);
+                mStringBuilder.append("data:image/jpeg;base64,");
+                mStringBuilder.append(mEncodedBase64);
                 //Log.i("encodedImage: ", encodedBase64.toString());
                 //encodedBase64 = new String(Base64.encode(bitmapdata, Base64.DEFAULT));
             }
-            else stringBuilder.append("");
+            else mStringBuilder.append("");
 
 
 
             JSONObject request = new JSONObject();
             try {
-                request.put("nameplace", edt_nameplace.getText().toString());
+                request.put("nameplace", mEdt_nameplace.getText().toString());
                 request.put("latitude", latitude);
                 request.put("longitude", longitude);
 
 
-                request.put("urlpic", stringBuilder.toString());
+                request.put("urlpic", mStringBuilder.toString());
                 //request.put("urlpic", "");
-                request.put("state", state);
+                request.put("state", mState);
                 request.put("province", "");
                 request.put("address", "");
                 //Log.i("json request: ", request.toString());
@@ -506,7 +509,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
 
 
 
-            handler.sendEmptyMessage(mensajeDevuelto);
+            mHandler.sendEmptyMessage(mensajeDevuelto);
         }
     }
 

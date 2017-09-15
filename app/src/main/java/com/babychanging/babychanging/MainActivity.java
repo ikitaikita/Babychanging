@@ -8,18 +8,18 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity implements View.OnClickListener{
-
-    private ImageView img_search, img_upload;
+    public static final String TAG = MainActivity.class.getSimpleName();
+    private ImageView mImg_search, mImg_upload;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        img_search = (ImageView)findViewById(R.id.img_search);
-        img_search.setOnClickListener(this);
-        img_upload = (ImageView)findViewById(R.id.img_upload);
-        img_upload.setOnClickListener(this);
+        mImg_search = (ImageView)findViewById(R.id.img_search);
+        mImg_search.setOnClickListener(this);
+        mImg_upload = (ImageView)findViewById(R.id.img_upload);
+        mImg_upload.setOnClickListener(this);
     }
 
     @Override

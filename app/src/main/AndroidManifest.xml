@@ -63,7 +63,7 @@
              />
         <activity android:name=".ListPlacesActivity"></activity>
         <!--activity android:name=".DetailBChangingActivity"></activity-->
-        <activity android:name=".DetailBChangingActivityMapView"></activity>
+        <activity android:name=".DetailBChangingFragmentActivity"></activity>
     </application>
 
 </manifest>

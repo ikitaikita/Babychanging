@@ -8,19 +8,20 @@ import android.widget.ImageView;
 
 public class SplashActivity extends Activity {
 
+    public static final String TAG = SplashActivity.class.getSimpleName();
     private static final int SLEEP_TIME = 2;
-    private ImageView splashImage;
+    private ImageView mSplashImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
-        splashImage = (ImageView) findViewById(R.id.splashImage);
+        mSplashImage = (ImageView) findViewById(R.id.splashImage);
         int orient = getWindowManager().getDefaultDisplay().getOrientation();
         if (orient == 0) {
-            splashImage.setBackgroundResource(R.drawable.splash_portrait);
+            mSplashImage.setBackgroundResource(R.drawable.splash_portrait);
         } else {
-            splashImage.setBackgroundResource(R.drawable.splash_landscape);
+            mSplashImage.setBackgroundResource(R.drawable.splash_landscape);
         }
         Thread thread = new Thread(new SleepWorker());
         thread.start();
