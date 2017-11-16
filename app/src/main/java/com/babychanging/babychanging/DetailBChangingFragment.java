@@ -280,7 +280,7 @@ public class DetailBChangingFragment extends Fragment implements OnClickListener
                         //imageView.setImageDrawable(Utils.roundImageDrawable(bitmap, getActivity().getResources()));
 
                     } else {
-                        Drawable placeholder = imageView.getContext().getResources().getDrawable(R.drawable.ic_noimage_300);
+                        Drawable placeholder = imageView.getContext().getResources().getDrawable(R.drawable.ic_noimage_big);
                         imageView.setImageDrawable(placeholder);
                     }
                 }

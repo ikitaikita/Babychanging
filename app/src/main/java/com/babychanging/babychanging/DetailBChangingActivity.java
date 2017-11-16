@@ -218,7 +218,7 @@ public class DetailBChangingActivity extends FragmentActivity implements OnClick
                             if(bmp!=null)img_pic.setImageBitmap(bmp);
                             else
                             {
-                                img_pic.setBackgroundResource(R.drawable.ic_carritoitem_mdpi);
+                                img_pic.setBackgroundResource(R.drawable.ic_noimage_small);
                             }
                         } catch (MalformedURLException e1) {
                             // TODO Auto-generated catch block
@@ -231,7 +231,7 @@ public class DetailBChangingActivity extends FragmentActivity implements OnClick
 
 
 
-                }else img_pic.setBackgroundResource(R.drawable.ic_carritoitem_mdpi);
+                }else img_pic.setBackgroundResource(R.drawable.ic_noimage_small);
 
 
 
@@ -340,7 +340,7 @@ public class DetailBChangingActivity extends FragmentActivity implements OnClick
                         //imageView.setImageDrawable(Utils.roundImageDrawable(bitmap, getActivity().getResources()));
 
                     } else {
-                        Drawable placeholder = imageView.getContext().getResources().getDrawable(R.drawable.ic_noimage_300);
+                        Drawable placeholder = imageView.getContext().getResources().getDrawable(R.drawable.ic_noimage_big);
                         imageView.setImageDrawable(placeholder);
                     }
                 }

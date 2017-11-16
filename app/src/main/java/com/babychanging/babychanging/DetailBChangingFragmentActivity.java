@@ -38,6 +38,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -251,18 +252,9 @@ public class DetailBChangingFragmentActivity extends FragmentActivity implements
                 // Start downloading json data from Google Directions API
                 downloadTask.execute(url);
             }
-
-
-
-
-
-
-
         }
-
-
-
     }
+
 
 
 
