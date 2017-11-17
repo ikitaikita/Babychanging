@@ -30,6 +30,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+
 import com.babychanging.babychanging.R;
 import com.babychanging.babychanging.internal.AccessInterface;
 import com.babychanging.babychanging.internal.MyApplication;
@@ -530,7 +531,8 @@ public class ListPlacesActivity_old extends Activity {
             }else holder.img_fav.setVisibility(View.INVISIBLE);
 
             if (holder.img_photo != null) {
-                if(p.getUrlpic().equals(""))holder.img_photo.setBackgroundResource(R.drawable.ic_noimage_small);
+                if(p.getUrlpic().equals(""))
+                    holder.img_photo.setBackgroundResource(R.drawable.ic_noimage_small);
                     else   new ImageDownloaderTask(holder.img_photo).execute(AccessInterface.URL_GETPHOTO + p.getUrlpic());
             }
 
@@ -668,7 +670,6 @@ public class ListPlacesActivity_old extends Activity {
 
 
             mHandler.sendEmptyMessage(mensajeDevuelto);
-
 
         }
     }
