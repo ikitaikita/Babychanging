@@ -1,12 +1,10 @@
-package com.babychanging.babychanging.internal;
+package com.babychanging.babychanging.utils;
 
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
-import android.net.Uri;
-import android.provider.MediaStore;
 //import android.util.Log;
 
 import com.babychanging.babychanging.model.BChanging;
@@ -16,7 +14,9 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by vik on 26/07/2017.
@@ -175,5 +175,87 @@ public class Utils {
         // recreate the new Bitmap
         return Bitmap.createBitmap(mBitmap, 0, 0, width, height, matrix, false);
     }
+
+    public static String getDirectionsUrl(LatLng origin, LatLng dest) {
+
+        // Origin of route
+        String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
+
+        // Destination of route
+        String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
+
+        // Sensor enabled
+        String sensor = "sensor=true";
+        String language ="language=en";
+        String mode = "units=metric";
+
+        // Building the parameters to the web service
+        String parameters = str_origin + "&" + str_dest + "&" + sensor + "&" + language +  "&" + mode;
+
+        // Output format
+        String output = "json";
+
+        // Building the url to the web service
+        String url = "http://maps.google.com/maps/api/directions/json?" + parameters;
+
+
+        return url;
+    }
+
+    private static List decodePoly(String encoded) {
+
+        List poly = new ArrayList();
+        int index = 0, len = encoded.length();
+        int lat = 0, lng = 0;
+
+        while (index < len) {
+            int b, shift = 0, result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lat += dlat;
+
+            shift = 0;
+            result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lng += dlng;
+
+            LatLng p = new LatLng((((double) lat / 1E5)),
+                    (((double) lng / 1E5)));
+            poly.add(p);
+        }
+
+        return poly;
+    }
+
+    public static List getPathFromPolyline(String polyline){
+        List path = new ArrayList<HashMap<String, String>>();
+        List list = decodePoly(polyline);
+
+        /** Traversing all points */
+        for(int l=0;l <list.size();l++){
+            HashMap<String, String> hm = new HashMap<String, String>();
+            hm.put("lat", Double.toString(((LatLng)list.get(l)).latitude) );
+            hm.put("lng", Double.toString(((LatLng)list.get(l)).longitude) );
+            path.add(hm);
+        }
+        return path;
+    }
+
+    public static String getStringPointFromDouble(double latitude, double longitude){
+        return new String(String.valueOf(latitude)+ "," + String.valueOf(longitude));
+    }
+    public static String getStringPointFromString(String latitude, String longitude){
+        return new String(latitude+ "," + longitude);
+    }
+
 
 }

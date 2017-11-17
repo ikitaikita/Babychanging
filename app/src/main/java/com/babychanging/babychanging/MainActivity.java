@@ -5,9 +5,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.Toast;
 
-public class MainActivity extends Activity implements View.OnClickListener{
+import com.babychanging.babychanging.ui.listplaces.ListPlacesActivity;
+import com.babychanging.babychanging.ui.upload.UploadActivity;
+
+public class MainActivity extends Activity implements MainView,View.OnClickListener{
     public static final String TAG = MainActivity.class.getSimpleName();
     private ImageView mImg_search, mImg_upload;
 
@@ -16,10 +18,9 @@ public class MainActivity extends Activity implements View.OnClickListener{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mImg_search = (ImageView)findViewById(R.id.img_search);
-        mImg_search.setOnClickListener(this);
-        mImg_upload = (ImageView)findViewById(R.id.img_upload);
-        mImg_upload.setOnClickListener(this);
+        findViewById(R.id.img_search).setOnClickListener(this);
+        findViewById(R.id.img_upload).setOnClickListener(this);
+
     }
 
     @Override
@@ -30,31 +31,32 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
             case R.id.img_search:
             {
-                goToListScreen();
+                openListPlaces();
             }
             break;
             case R.id.img_upload:
             {
-                goToUploadScreen();
+                openUpload();
             }
             break;
 
         }
     }
 
-    private void goToUploadScreen()
-    {
-        Intent intent = new Intent(this, UploadActivity.class);
-        this.startActivity(intent);
 
+
+
+
+    @Override
+    public void openListPlaces() {
+        startActivity(new Intent(this, ListPlacesActivity.class));
+        //finish();
     }
-    private void goToListScreen()
-    {
-        Intent intent = new Intent(this, ListPlacesActivity.class);
-        this.startActivity(intent);
 
-
-
+    @Override
+    public void openUpload() {
+        startActivity(new Intent(this, UploadActivity.class));
+        //finish();
 
     }
 }

@@ -1,8 +1,7 @@
 
-package com.babychanging.babychanging;
+package com.babychanging.babychanging.ui.upload;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -27,11 +26,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Switch;
 import android.widget.Toast;
 
+import com.babychanging.babychanging.Constants;
+import com.babychanging.babychanging.MainActivity;
+import com.babychanging.babychanging.R;
+import com.babychanging.babychanging.di.Injector;
 import com.babychanging.babychanging.internal.AccessInterface;
-import com.babychanging.babychanging.internal.Utils;
+import com.babychanging.babychanging.utils.Utils;
 import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONException;
@@ -39,14 +41,21 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 
-public class UploadActivity extends Activity  implements View.OnClickListener{
+import timber.log.Timber;
+
+public class UploadActivity extends Activity  implements UploadView, View.OnClickListener{
 
 
     private static String TAG =UploadActivity.class.getSimpleName();
     private final int RESULT_UPLOAD_OK= 1;
     private final int RESULT_UPLOAD_ERROR = -1;
-    private static int TAKE_PICTURE = 2;
-    private static final int SELECT_PICTURE = 3;
+
+
+    private UploadPresenter presenter;
+
+
+
+
     private ImageView mImg_camera;
     private Button    mBtn_upload;
     private EditText mEdt_nameplace;
@@ -78,17 +87,19 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
     private StringBuilder mStringBuilder = null;
 
 
-
+    public UploadActivity() {
+        super();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload);
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+       // StrictMode.setThreadPolicy(policy);
+        //mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         //Request Permissions for Android 6.0
-        requestLocationPermission();
+        //requestLocationPermission();
 
       /*  Bundle bundle = getIntent().getExtras();
         if(bundle != null)
@@ -102,6 +113,9 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
         mEdt_nameplace = (EditText) findViewById(R.id.edt_nameplace);
         mImg_camera.setOnClickListener(this);
         mBtn_upload.setOnClickListener(this);
+
+        presenter = new UploadPresenterImpl(getApplicationContext(),UploadActivity.this, this,Injector.provideBCService());
+        presenter.requestLocationPermissions();
     }
 
     @Override
@@ -114,6 +128,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
             {
                 Toast toast1 =Toast.makeText(getApplicationContext(),"Camera", Toast.LENGTH_SHORT);
                 toast1.show();
+                presenter.clickCamera();
 
                 GalleryCamSelection();
             }
@@ -122,36 +137,8 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
             {
                 if(mEdt_nameplace.length()!= 0  || mBitmapdata != null)
                 {
-                    new AlertDialog.Builder(this)
-                            .setTitle(R.string.title)
-                            .setSingleChoiceItems(Utils.choices, 0, null)
-                            .setPositiveButton(R.string.ok_button_label, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int whichButton) {
-                                    dialog.dismiss();
-                                    int selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
-                                    //Log.i("seleccion: ", String.valueOf(selectedPosition));
-                                    mState = getState(selectedPosition);
-                                    //Log.i("state: ", state);
-                                    uploadData();
-                                    gotoMainScreen();
-                                    // Do something useful withe the position of the selected radio button
-                                }
-                            })
-                            .setNegativeButton(R.string.cancel_button_label, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int whichButton) {
-                                    dialog.dismiss();
+                    this.showRate();
 
-                                }
-                            })
-                            .setCancelable(true)
-                        /*.setNegativeButton(R.string.no_button_label,
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int id) {
-                                        //uploadData();
-                                        gotoMainScreen();
-                                    }
-                                })*/
-                            .show();
                 }else
                 {
                     Utils.showAlert(this,"", "Please introduce a name or a pic for the place and try again. Thanks");
@@ -197,9 +184,11 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
         builder.setItems(items, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int item) {
                 if (item == 0) {// Camara
+
                     CaptureFoto();
                 } else if (item == 1) {// Galeria
                     GallerySelection();
+
                 }
 
             }
@@ -212,7 +201,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
     private void GallerySelection() {
         Intent intent = new Intent(Intent.ACTION_PICK,
                 android.provider.MediaStore.Images.Media.INTERNAL_CONTENT_URI);
-        startActivityForResult(intent, SELECT_PICTURE);
+        startActivityForResult(intent, Constants.SELECT_PICTURE);
     }
     private void CaptureFoto() {
         /////
@@ -224,13 +213,13 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
         Intent camaraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
         //camaraIntent.putExtra(MediaStore.EXTRA_OUTPUT, output);
 
-        startActivityForResult(camaraIntent, TAKE_PICTURE);
+        startActivityForResult(camaraIntent, Constants.TAKE_PICTURE);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        if (requestCode == TAKE_PICTURE) {
+        if (requestCode == Constants.TAKE_PICTURE) {
 
             if (data != null) {
 
@@ -261,7 +250,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
                 }
 
             }
-        } else if (requestCode == SELECT_PICTURE) {
+        } else if (requestCode == Constants.SELECT_PICTURE) {
             Uri selectedImage = data.getData();
 
             String path = getRealPathFromURI(selectedImage);
@@ -320,10 +309,131 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
     private void uploadData()
     {
         //pDialogx = ProgressDialog.show(this,"Info", "Uploading...");
-        Thread thread = new Thread(new UploadData());
-        thread.start();
+        /*Thread thread = new Thread(new UploadData());
+        thread.start();*/
+
+        String picture = getStringFromBitmapdata(mBitmapdata);
+        Timber.i("picture: ", picture);
+        double lat = presenter.getLatitude();
+        double longi = presenter.getLongitude();
+        Timber.i("latitude: ", lat);
+        Timber.i("picture: ", longi);
+
+        presenter.uploadBabyC(mEdt_nameplace.getText().toString(),String.valueOf(lat),String.valueOf(longi),picture,mState, "","");
+
 
     }
+
+    String getStringFromBitmapdata(byte[] bitmapdata){
+        mStringBuilder = new StringBuilder();
+        if(bitmapdata != null)
+        {
+            //prueba = Base64.encode(bitmapdata, Base64.DEFAULT);
+            mEncodedBase64 = Base64.encodeToString(bitmapdata, Base64.DEFAULT);
+
+            mStringBuilder.append("data:image/jpeg;base64,");
+            return  mStringBuilder.append(mEncodedBase64).toString();
+
+            //Log.i("encodedImage: ", encodedBase64.toString());
+            //encodedBase64 = new String(Base64.encode(bitmapdata, Base64.DEFAULT));
+        }
+        else return "";
+
+
+    }
+
+    @Override
+    public void showPicture() {
+
+    }
+
+    @Override
+    public void showSourceImageSelection() {
+        //GalleryCamSelection();
+        final String[] items = { "Camara", "Gallery" };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setTitle("Selección");
+        builder.setItems(items, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int item) {
+                if (item == 0) {// Camara
+                    CaptureFoto();
+                } else if (item == 1) {// Galeria
+                    GallerySelection();
+                }
+
+            }
+        });
+
+        builder.create();
+        builder.show();
+    }
+
+    @Override
+    public void showRate() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.title)
+                .setSingleChoiceItems(Utils.choices, 0, null)
+                .setPositiveButton(R.string.ok_button_label, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        dialog.dismiss();
+                        int selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
+                        //Log.i("seleccion: ", String.valueOf(selectedPosition));
+                        mState = getState(selectedPosition);
+                        //Log.i("state: ", state);
+                        uploadData();
+
+
+
+                        gotoMainScreen();
+                        // Do something useful withe the position of the selected radio button
+                    }
+                })
+                .setNegativeButton(R.string.cancel_button_label, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        dialog.dismiss();
+
+                    }
+                })
+                .setCancelable(true)
+                        /*.setNegativeButton(R.string.no_button_label,
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        //uploadData();
+                                        gotoMainScreen();
+                                    }
+                                })*/
+                .show();
+
+    }
+
+    @Override
+    public void showSuccessUpload(String message) {
+
+    }
+
+    @Override
+    public void showErrorMessage(String message) {
+
+    }
+
+    @Override
+    public void showAlertDialog(String message) {
+        new android.app.AlertDialog.Builder(this)
+                .setMessage(this.getString(R.string.permission_location_explanation))
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        ActivityCompat
+                                .requestPermissions(UploadActivity.this, Utils.PERMISSIONS_LOCATION,
+                                        Utils.REQUEST_LOCATION);
+                    }
+                }).show();
+
+    }
+
+
     private class CustomLocationListener implements LocationListener {
 
         public void onLocationChanged(Location argLocation) {
@@ -349,7 +459,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
         public void onStatusChanged(String provider,
                                     int status, Bundle extras) {}
     }
-    private void requestLocationPermission() {
+ /*   private void requestLocationPermission() {
 
         gps_enabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         network_enabled = mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
@@ -401,8 +511,8 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
                 {
                     //Log.i(TAG, "chosen Location: "+ "GPS");
                     mDeviceLocation = gps_loc;
-                    /*startpoint = new LatLng(latitude,longitude);
-                    application.setStartpoint(startpoint);*/
+                    *//*startpoint = new LatLng(latitude,longitude);
+                    application.setStartpoint(startpoint);*//*
 
                 }
 
@@ -410,8 +520,8 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
                 {
                     //Log.i(TAG, "chosen Location: "+ "NETWORK");
                     mDeviceLocation = net_loc;
-                    /*startpoint = new LatLng(latitude,longitude);
-                    application.setStartpoint(startpoint);*/
+                    *//*startpoint = new LatLng(latitude,longitude);
+                    application.setStartpoint(startpoint);*//*
                 }
 
 
@@ -427,7 +537,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
             }
             return;
         }
-    }
+    }*/
     private class UploadData implements Runnable {
 
 

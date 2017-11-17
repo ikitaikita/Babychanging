@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -20,17 +19,15 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.babychanging.babychanging.internal.AccessInterface;
 import com.babychanging.babychanging.internal.DirectionsJSONParser;
 import com.babychanging.babychanging.internal.MyApplication;
-import com.babychanging.babychanging.internal.Utils;
+import com.babychanging.babychanging.utils.Utils;
 import com.babychanging.babychanging.model.BChanging;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
-import com.google.android.gms.games.multiplayer.realtime.RealTimeMessage;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -280,7 +277,7 @@ public class DetailBChangingFragment extends Fragment implements OnClickListener
                         //imageView.setImageDrawable(Utils.roundImageDrawable(bitmap, getActivity().getResources()));
 
                     } else {
-                        Drawable placeholder = imageView.getContext().getResources().getDrawable(R.drawable.ic_noimage_300);
+                        Drawable placeholder = imageView.getContext().getResources().getDrawable(R.drawable.ic_noimage_big);
                         imageView.setImageDrawable(placeholder);
                     }
                 }

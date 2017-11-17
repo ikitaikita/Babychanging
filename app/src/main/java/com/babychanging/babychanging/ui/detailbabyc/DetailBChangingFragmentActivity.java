@@ -1,4 +1,4 @@
-package com.babychanging.babychanging;
+package com.babychanging.babychanging.ui.detailbabyc;
 
 
 import android.content.Intent;
@@ -9,7 +9,6 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 //import android.util.Log;
@@ -22,11 +21,14 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.babychanging.babychanging.internal.AccessInterface;
+import com.babychanging.babychanging.Constants;
+import com.babychanging.babychanging.R;
+import com.babychanging.babychanging.data.model.BabyC;
+import com.babychanging.babychanging.data.model.Route;
+import com.babychanging.babychanging.di.Injector;
 import com.babychanging.babychanging.internal.DirectionsJSONParser;
 import com.babychanging.babychanging.internal.MyApplication;
-import com.babychanging.babychanging.internal.Utils;
-import com.babychanging.babychanging.model.BChanging;
+import com.babychanging.babychanging.utils.Utils;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -37,6 +39,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONObject;
 
@@ -46,7 +49,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,11 +57,16 @@ import java.util.List;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class DetailBChangingFragmentActivity extends FragmentActivity implements OnClickListener {
+public class DetailBChangingFragmentActivity extends FragmentActivity implements DetailBChangingView,OnClickListener {
     public static final String TAG = DetailBChangingFragmentActivity.class.getSimpleName();
+    public static final String EXTRA_BABYC = "bchanging";
+    public static final String EXTRA_LATITUDE = "laitude";
+    public static final String EXTRA_LONGITUDE = "longitude";
 
-    private BChanging mBchanging = null;
-    private double mLat,mLongi = 0;
+    private DetailBChangingPresenter presenter;
+
+    private BabyC babyC;
+    //
     private MyApplication mApplication;
 
     private TextView mTxt_name;
@@ -97,8 +104,8 @@ public class DetailBChangingFragmentActivity extends FragmentActivity implements
 
 
 
-  /*  private double mLatitude = 42.598726;
-    private double longitude = -5.567096;*/
+    private double mLatitude = 42.598726;
+    private double longitude = -5.567096;
 
 
     public DetailBChangingFragmentActivity() {
@@ -108,9 +115,9 @@ public class DetailBChangingFragmentActivity extends FragmentActivity implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_detail_bchanging);
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-        mApplication = (MyApplication) getApplicationContext();
+        /*StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);*/
+        //mApplication = (MyApplication) getApplicationContext();
         try {
             MapsInitializer.initialize(DetailBChangingFragmentActivity.this);
 
@@ -119,19 +126,32 @@ public class DetailBChangingFragmentActivity extends FragmentActivity implements
             e.printStackTrace();
         }
 
+        presenter = new DetailBChangingPresenter(this, Injector.provideRouteMapService()) ;
+        loadView();
+        presenter.setBabyC( (BabyC)getIntent().getSerializableExtra( EXTRA_BABYC ) );
+        presenter.setmLat(getIntent().getDoubleExtra(EXTRA_LATITUDE, 0));
+        presenter.setmLongi(getIntent().getDoubleExtra(EXTRA_LONGITUDE, 0));
+
+
 
         //Log.e(TAG, "onCreate");
 
+        //babyC = (BabyC)getIntent().getSerializableExtra(EXTRA_BABYC);
+
+        loadMap(savedInstanceState);
+        loadBC(presenter.getBabyC());
+        drawBConMap(presenter.getBabyC(), presenter.getmLat(), presenter.getmLongi());
 
 
-        Bundle bundle = getIntent().getExtras();
+      /*  Bundle bundle = getIntent().getExtras();
         if(bundle != null)
         {
-            mBchanging= (BChanging) bundle.getSerializable("bchanging");
-            mLat = bundle.getDouble("mylat");
-            mLongi = bundle.getDouble("mylongi");
 
-        }
+            presenter.setBabyC((BabyC) bundle.getSerializable(EXTRA_BABYC));
+            presenter.setmLat(bundle.getDouble(EXTRA_LATITUDE));
+            presenter.setmLongi(bundle.getDouble(EXTRA_LONGITUDE));
+
+        }*/
         /*requestLocationPermission();
 
         if(m_DeviceLocation!=null)
@@ -143,138 +163,101 @@ public class DetailBChangingFragmentActivity extends FragmentActivity implements
         }*/
        // btn_goto = (Button) findViewById(R.id.btn_goto);
         //btn_goto.setOnClickListener(this);
-        mImg_pic = (ImageButton) findViewById(R.id.img_pic);
-        mImg_pic.setOnClickListener(this);
-        mBtn_share = (Button) findViewById(R.id.btn_share);
-        mBtn_share.setOnClickListener(this);
-        mTxt_name = (TextView)findViewById(R.id.txt_name);
-        mTxt_address = (TextView)findViewById(R.id.txt_address);
-
-        mTxt_state = (TextView)findViewById(R.id.txt_state);
-        //layPIC
-
-        mRel_pic = (RelativeLayout) findViewById(R.id.lay_pic);
-        mImg_photo = (ImageView)findViewById(R.id.img_photo);
-        mImg_btnclose = (ImageButton)  findViewById(R.id.img_btnclose);
-        mImg_btnclose.setOnClickListener(this);
-
-        //lay_map
-
-        mRel_map = (RelativeLayout)  findViewById(R.id.lay_map);
-        //lay_map.setVisibility(View.GONE);
-
-
-
-        mTxt_duration_val = (TextView) findViewById(R.id.txt_duration_val);
-        mTxt_distance_val = (TextView) findViewById(R.id.txt_distance_val);
-
-        //get map
-        mMapView = (MapView) findViewById(R.id.map);
-        // mMapView.onCreate(mBundle);
-        mMapView.onCreate(savedInstanceState);
-        mMap = mMapView.getMap();
-        mMap.getUiSettings().setMyLocationButtonEnabled(true);
-        mMap.setMyLocationEnabled(true);
-        //mMap.setMyLocationEnabled(true);
-
-
-
-
-        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL); //establecemos tipo de mapa
-
-        mMap.getUiSettings().setZoomControlsEnabled(true);
-        mMap.getUiSettings().setCompassEnabled(true);
 
 
 
 
 
 
-        if(mBchanging != null)
-
-        {
-
-            mTxt_name.setText(mBchanging.getNameplace());
-            String type_string = Utils.getStateFromChar(mBchanging.getState());
-            //Log.i("555555: ", type_string);
-            mTxt_state.setText(type_string);
-            if(!mBchanging.getAddress().equals(""))mTxt_address.setText(mBchanging.getAddress());
-            LatLng coordinate = new LatLng(Double.valueOf(mBchanging.getLatitude()), Double.valueOf( mBchanging.getLongitude()));
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(coordinate,12));
-            mMap.setMyLocationEnabled(true);
-            drawOnePointOnMap();
 
 
 
-                if(mBchanging.getUrlpic()!= null)
-                {
 
-                    if(!mBchanging.getUrlpic().equals(""))
-                    {
-                        Bitmap bmp;
-                        try {
-                            String urlpic = AccessInterface.URL_GETPHOTO + mBchanging.getUrlpic();
-                            //Log.i("urlpic: ",urlpic);
-                            bmp = BitmapFactory.decodeStream(new URL(urlpic).openStream());
-                            if(bmp!=null)mImg_pic.setImageBitmap(bmp);
-                            else
-                            {
-                                mImg_pic.setBackgroundResource(R.drawable.ic_noimage_small);
-                            }
-                        } catch (MalformedURLException e1) {
-                            // TODO Auto-generated catch block
-                            e1.printStackTrace();
-                        } catch (IOException e1) {
-                            // TODO Auto-generated catch block
-                            e1.printStackTrace();
-                        }
-                    }
+    }
+   private void loadMap(Bundle savedInstanceState){
+       //get map
+       mMapView = (MapView) findViewById(R.id.map);
+       // mMapView.onCreate(mBundle);
+       mMapView.onCreate(savedInstanceState);
+       mMap = mMapView.getMap();
+       mMap.getUiSettings().setMyLocationButtonEnabled(true);
+       mMap.setMyLocationEnabled(true);
+       //mMap.setMyLocationEnabled(true);
 
 
 
-                }else mImg_pic.setBackgroundResource(R.drawable.ic_noimage_small);
+
+       mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL); //establecemos tipo de mapa
+
+       mMap.getUiSettings().setZoomControlsEnabled(true);
+       mMap.getUiSettings().setCompassEnabled(true);
+   }
+
+   private void loadView(){
+       mImg_pic = (ImageButton) findViewById(R.id.img_pic);
+       mImg_pic.setOnClickListener(this);
+       mBtn_share = (Button) findViewById(R.id.btn_share);
+       mBtn_share.setOnClickListener(this);
+       mTxt_name = (TextView)findViewById(R.id.txt_name);
+       mTxt_address = (TextView)findViewById(R.id.txt_address);
+
+       mTxt_state = (TextView)findViewById(R.id.txt_state);
+       //layPIC
+
+       mRel_pic = (RelativeLayout) findViewById(R.id.lay_pic);
+       mImg_photo = (ImageView)findViewById(R.id.img_photo);
+       mImg_btnclose = (ImageButton)  findViewById(R.id.img_btnclose);
+       mImg_btnclose.setOnClickListener(this);
+
+       //lay_map
+
+       mRel_map = (RelativeLayout)  findViewById(R.id.lay_map);
+       //lay_map.setVisibility(View.GONE);
 
 
 
-            if(mLat != 0  & mLongi != 0)
-            {
-                Location myLocation = mMap.getMyLocation();
-                //Log.i("KKKKKK: ", myLocation.toString());
-                //LatLng origin = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
-                LatLng origin = new LatLng(mLat, mLongi);
-                LatLng dest = new LatLng(Double.parseDouble(mBchanging.getLatitude()), Double.parseDouble(mBchanging.getLongitude()));
+       mTxt_duration_val = (TextView) findViewById(R.id.txt_duration_val);
+       mTxt_distance_val = (TextView) findViewById(R.id.txt_distance_val);
 
-                // Getting URL to the Google Directions API
-                String url = getDirectionsUrl(origin, dest);
-                DownloadTask downloadTask = new DownloadTask();
 
-                // Start downloading json data from Google Directions API
-                downloadTask.execute(url);
+   }
+
+
+
+
+    public void loadBC(BabyC babyC) {
+        this.babyC = babyC;
+        mTxt_name.setText(babyC.getNameplace());
+        String type_string = Utils.getStateFromChar(babyC.getState());
+        //Log.i("555555: ", type_string);
+        mTxt_state.setText(type_string);
+        if(!babyC.getAddress().equals(""))mTxt_address.setText(babyC.getAddress());
+
+        if(babyC.getUrlpic()!= null) {
+
+            if (!babyC.getUrlpic().equals("")) {
+                Picasso.with(this)
+                        .load(Constants.BASE_URL_PIC + babyC.getUrlpic())
+                        .noFade()
+                        .into(mImg_pic);
+
+
             }
-
-
-
-
-
-
-
         }
+
+
 
 
 
     }
 
-
-
-
-
-    private void drawOnePointOnMap() {
-        //Log.i("", "drawOnePointOnMap");
-
-
-        if(mBchanging.getLatitude() != null && mBchanging.getLongitude() != null)
+    private void drawBConMap(BabyC babyc, double mLat, double mLongi){
+        LatLng coordinate = new LatLng(Double.valueOf(babyc.getLatitude()), Double.valueOf( babyc.getLongitude()));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(coordinate,12));
+        mMap.setMyLocationEnabled(true);
+        if(babyc.getLatitude() != null && babyc.getLongitude() != null)
         {
-            LatLng markerPosition = new LatLng (Double.parseDouble(mBchanging.getLatitude()) , Double.parseDouble(mBchanging.getLongitude()));
+            LatLng markerPosition = new LatLng (Double.parseDouble(babyc.getLatitude()) , Double.parseDouble(babyc.getLongitude()));
             //Log.i("markerPosition: ", markerPosition.toString());
 
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerPosition,15));
@@ -285,95 +268,38 @@ public class DetailBChangingFragmentActivity extends FragmentActivity implements
             //añade el marcador al mapa
             Marker marker = mMap.addMarker(new MarkerOptions()
                     .position(markerPosition)
-                    .title(mBchanging.getNameplace())
-                    .snippet(mBchanging.getAddress())
+                    .title(babyc.getNameplace())
+                    .snippet(babyc.getAddress())
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_location))
 
                     .anchor(0.5f, 0.5f));
 
             marker.showInfoWindow();
         }
+        if(mLat != 0  & mLongi != 0)
+        {
+            Location myLocation = mMap.getMyLocation();
+            //Log.i("KKKKKK: ", myLocation.toString());
+            //LatLng origin = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
+            /*LatLng origin = new LatLng(mLat, mLongi);
+            LatLng dest = new LatLng(Double.parseDouble(babyC.getLatitude()), Double.parseDouble(babyC.getLongitude()));*/
+            String origin = Utils.getStringPointFromDouble(presenter.getmLat(), presenter.getmLongi());
+            String destination = Utils.getStringPointFromString(presenter.getBabyC().getLatitude(), presenter.getBabyC().getLongitude());
+            presenter.loadRouteData(origin,destination);
 
-
-
-
-
-//						mMap.setOnInfoWindowClickListener(new OnInfoWindowClickListener(){
-//							@Override
-//							 public void onInfoWindowClick(Marker marker) {
-//								Place res = allMarkersMap.get(marker);
-//								Intent intent = new Intent(getActivity(), MapPopupActivity.class);
-//								//Store res = l_stores.get(Integer.parseInt(marker.getSnippet()));
-//								//Store res = l_stores.get(Integer.parseInt(marker.getSnippet()));
-//								intent.putExtra("store",res);
-//								startActivity(intent);
-//							 }
-//						});
-
-
-    }
-
-    class ImageDownloaderTaskUser extends AsyncTask<String, Void, Bitmap> {
-        private final WeakReference<ImageView> imageViewReference;
-
-        public ImageDownloaderTaskUser(ImageView imageView) {
-            imageViewReference = new WeakReference<ImageView>(imageView);
-        }
-
-        @Override
-        protected Bitmap doInBackground(String... params) {
-
-            return downloadBitmapUser(params[0]);
-        }
-
-        @Override
-        protected void onPostExecute(Bitmap bitmap) {
-            if (isCancelled()) {
-                bitmap = null;
-            }
-
-            if (imageViewReference != null) {
-                ImageView imageView = imageViewReference.get();
-                if (imageView != null) {
-                    if (bitmap != null) {
-                        imageView.setImageBitmap(bitmap);
-
-                        //imageView.setImageDrawable(Utils.roundImageDrawable(bitmap, getActivity().getResources()));
-
-                    } else {
-                        Drawable placeholder = imageView.getContext().getResources().getDrawable(R.drawable.ic_noimage_big);
-                        imageView.setImageDrawable(placeholder);
-                    }
-                }
-            }
         }
     }
-    private Bitmap downloadBitmapUser(String url) {
-        HttpURLConnection urlConnection = null;
-        try {
-            URL uri = new URL(url);
-            urlConnection = (HttpURLConnection) uri.openConnection();
-            int statusCode = urlConnection.getResponseCode();
-            if (statusCode != 200) {
-                return null;
-            }
 
-            InputStream inputStream = urlConnection.getInputStream();
-            if (inputStream != null) {
-                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                //Bitmap bitmap2 = Utils.getRoundedShape(bitmap);
-                return bitmap;
-            }
-        } catch (Exception e) {
-            urlConnection.disconnect();
-            //Log.w("ImageDownloader", "Error downloading image from " + url);
-        } finally {
-            if (urlConnection != null) {
-                urlConnection.disconnect();
-            }
-        }
-        return null;
+    @Override
+    public void showBigPic() {
+        mRel_pic.setVisibility(View.VISIBLE);
+        Picasso.with(this)
+                .load(Constants.BASE_URL_PIC + babyC.getUrlpic())
+                .noFade()
+                .into(mImg_photo);
     }
+
+
 
     @Override
     public void onResume() {
@@ -441,18 +367,20 @@ public class DetailBChangingFragmentActivity extends FragmentActivity implements
             case R.id.img_pic:
 
             {
-                Toast toast1 =Toast.makeText(getApplicationContext(),"img_pic", Toast.LENGTH_SHORT);
+               /* Toast toast1 =Toast.makeText(getApplicationContext(),"img_pic", Toast.LENGTH_SHORT);
                 toast1.show();
-                mRel_pic.setVisibility(View.VISIBLE);
-                new ImageDownloaderTaskUser(mImg_photo).execute(AccessInterface.URL_GETPHOTO + mBchanging.getUrlpic());
+                showBigPic();*/
+                presenter.clickSmallPic();
+
 
             }
             break;
 
             case R.id.img_btnclose:
             {
+                presenter.clickClosePic();
+                //closeBigPic();
 
-                mRel_pic.setVisibility(View.GONE);
 
 
             }
@@ -460,15 +388,8 @@ public class DetailBChangingFragmentActivity extends FragmentActivity implements
 
             case R.id.btn_share:
             {
-                Intent sharingIntent = new Intent(Intent.ACTION_SEND);
-                sharingIntent.setType("text/plain");
-                String shareSubject =  getResources().getString(R.string.share_subject);
-                String uri = "http://maps.google.com/maps?q=" +mBchanging.getLatitude()+","+mBchanging.getLongitude();
+                presenter.shareButtonClick();
 
-                String shareBody =getResources().getString(R.string.share_body)+ " " + mBchanging.getNameplace() +  " "  + getResources().getString(R.string.hope_like);
-                sharingIntent.putExtra(Intent.EXTRA_SUBJECT,shareSubject);
-                sharingIntent.putExtra(Intent.EXTRA_TEXT, shareBody);
-                startActivity(Intent.createChooser(sharingIntent, "Share via"));
 
             }
             break;
@@ -477,6 +398,90 @@ public class DetailBChangingFragmentActivity extends FragmentActivity implements
 
         }
     }
+
+
+    @Override
+    public void closeBigPic() {
+        mRel_pic.setVisibility(View.GONE);
+    }
+
+
+
+
+    @Override
+    public void showDistanceDuration(long distance, long duration) {
+
+    }
+
+    @Override
+    public void showMap() {
+
+    }
+
+    @Override
+    public void drawPointOnMap() {
+        //Log.i("", "drawOnePointOnMap");
+
+
+
+
+
+
+
+
+//						mMap.setOnInfoWindowClickListener(new OnInfoWindowClickListener(){
+//							@Override
+//							 public void onInfoWindowClick(Marker marker) {
+//								Place res = allMarkersMap.get(marker);
+//								Intent intent = new Intent(getActivity(), MapPopupActivity.class);
+//								//Store res = l_stores.get(Integer.parseInt(marker.getSnippet()));
+//								//Store res = l_stores.get(Integer.parseInt(marker.getSnippet()));
+//								intent.putExtra("store",res);
+//								startActivity(intent);
+//							 }
+//						});
+
+    }
+
+    @Override
+    public void showDurationAndDistance(List<Route> routelist) {
+        String duration = routelist.get(0).getLegs().get(0).getDuration().getText();
+        String distance = routelist.get(0).getLegs().get(0).getDistance().getText();
+        mTxt_distance_val.setText(distance);
+        mTxt_duration_val.setText(duration);
+
+
+
+    }
+
+    @Override
+    public void showMessage(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+
+    }
+
+    @Override
+    public void shareBabyC() {
+        Intent sharingIntent = new Intent(Intent.ACTION_SEND);
+        sharingIntent.setType("text/plain");
+        String shareSubject =  getResources().getString(R.string.share_subject);
+        String uri = "http://maps.google.com/maps?q=" +babyC.getLatitude()+","+babyC.getLongitude();
+
+        String shareBody =
+                getResources().getString(R.string.share_body)
+                        + " "
+                        + babyC.getNameplace()
+                        +  " "
+                        + " que se encuentra en "
+                        + uri
+                        +  " "
+                        + getResources().getString(R.string.hope_like);
+        sharingIntent.putExtra(Intent.EXTRA_SUBJECT,shareSubject);
+        sharingIntent.putExtra(Intent.EXTRA_TEXT, shareBody);
+        startActivity(Intent.createChooser(sharingIntent, "Share via"));
+
+    }
+
     private class DownloadTask extends AsyncTask<String, Void, String> {
 
         @Override
@@ -572,42 +577,13 @@ public class DetailBChangingFragmentActivity extends FragmentActivity implements
 
 // Drawing polyline in the Google Map for the i-th route
             mMap.addPolyline(lineOptions);
-            addDistanceDuration();
+            //addDistanceDuration();
         }
     }
 
-    private void addDistanceDuration()
-    {
-        //lay_dd.setVisibility(View.VISIBLE);
-        mTxt_distance_val.setText(distance);
-        mTxt_duration_val.setText(duration);
-    }
-
-    private String getDirectionsUrl(LatLng origin, LatLng dest) {
-
-        // Origin of route
-        String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
-
-        // Destination of route
-        String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
-
-        // Sensor enabled
-        String sensor = "sensor=true";
-        String language ="language=en";
-        String mode = "units=metric";
-
-        // Building the parameters to the web service
-        String parameters = str_origin + "&" + str_dest + "&" + sensor + "&" + language +  "&" + mode;
-
-        // Output format
-        String output = "json";
-
-        // Building the url to the web service
-        String url = "http://maps.google.com/maps/api/directions/json?" + parameters;
 
 
-        return url;
-    }
+
 
     private String downloadUrl(String strUrl) throws IOException {
         String data = "";

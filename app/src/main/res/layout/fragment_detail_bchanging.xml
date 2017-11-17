@@ -2,8 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.babychanging.babychanging.DetailBChangingFragment"
-    >
+    tools:context="com.babychanging.babychanging.DetailBChangingFragment">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -52,7 +51,7 @@
                     android:gravity="center"
                     android:text="NOMBRE SITIO"
                     android:textColor="?attr/colorPrimary"
-                    android:textSize="16sp"></TextView>
+                    android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/txt_address"
@@ -60,7 +59,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="address"
-                    android:textColor="?attr/colorAccent"></TextView>
+                    android:textColor="?attr/colorAccent" />
 
                 <TextView
                     android:id="@+id/txt_state"
@@ -69,7 +68,7 @@
 
                     android:gravity="center"
                     android:text="address"
-                    android:textColor="?attr/colorAccent"></TextView>
+                    android:textColor="?attr/colorAccent" />
 
 
             </LinearLayout>
@@ -83,10 +82,7 @@
                 android:layout_marginRight="15dp"
                 android:layout_marginTop="10dp"
 
-                android:background="@drawable/ic_menu_share"
-
-
-                />
+                android:background="@drawable/ic_menu_share" />
 
 
         </RelativeLayout>
@@ -96,20 +92,17 @@
             android:id="@+id/lay_map"
             android:layout_width="match_parent"
             android:layout_height="fill_parent"
-
             android:layout_below="@+id/lay_header"
             android:layout_margin="20dp"
-            android:background="@drawable/border"
-
-            >
+            android:background="@drawable/border">
 
             <com.google.android.gms.maps.MapView
                 android:id="@+id/map"
                 android:layout_width="match_parent"
                 android:layout_height="fill_parent"
+                android:layout_above="@+id/lay_dd"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
-                android:layout_above="@+id/lay_dd"
                 android:padding="5dp" />
 
             <!--fragment
@@ -136,15 +129,14 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:layout_marginTop="10dp"
-                android:background="@drawable/border"
-                >
+                android:background="@drawable/border">
 
                 <TextView
                     android:id="@+id/txt_distance"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
                     android:layout_marginLeft="20dp"
+                    android:layout_marginTop="10dp"
                     android:text="@string/distance"
                     android:textColor="@color/colorPrimaryDark"
                     android:textStyle="bold" />
@@ -165,8 +157,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/txt_distance"
-                    android:layout_marginLeft="20dp"
                     android:layout_marginBottom="20dp"
+                    android:layout_marginLeft="20dp"
                     android:text="@string/duration"
                     android:textColor="@color/colorPrimaryDark"
                     android:textStyle="bold" />
@@ -202,9 +194,9 @@
                 android:id="@+id/img_photo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_centerVertical="true"
                 android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:layout_gravity="center"
                 android:layout_margin="20dp"
                 android:src="@drawable/ic_noimage_big"
 

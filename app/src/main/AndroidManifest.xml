@@ -35,7 +35,7 @@
     </compatible-screens>
 
     <application
-        android:name=".internal.MyApplication"
+        android:name=".BabyChangingApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -58,12 +58,14 @@
             </intent-filter>
         </activity>
         <activity android:name=".MainActivity" />
+        <!--activity android:name=".MainActivity_old" /-->
         <activity
-            android:name=".UploadActivity"
+            android:name=".ui.upload.UploadActivity"
              />
-        <activity android:name=".ListPlacesActivity"></activity>
+        <activity android:name=".ui.listplaces.ListPlacesActivity"></activity>
+        <!--activity android:name=".ui.listplaces.ListPlacesActivity_old"></activity-->
         <!--activity android:name=".DetailBChangingActivity"></activity-->
-        <activity android:name=".DetailBChangingFragmentActivity"></activity>
+        <activity android:name=".ui.detailbabyc.DetailBChangingFragmentActivity"></activity>
     </application>
 
 </manifest>
