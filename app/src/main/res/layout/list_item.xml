@@ -34,7 +34,7 @@
                 android:layout_centerVertical="true"
                 android:layout_margin="10dp"
 
-                android:src="@drawable/ic_carritoitem_mdpi"
+                android:src="@drawable/ic_noimage_small"
                 android:background="@drawable/border"
                 android:contentDescription="@string/text_item"/>
             <TextView
@@ -89,7 +89,7 @@
             android:layout_marginEnd="20dp"
             android:layout_marginRight="20dp"
             android:layout_gravity="center"
-            android:src="@drawable/ic_action_favorite"
+            android:src="@drawable/ic_favorite"
             android:visibility="visible"/>
 
 

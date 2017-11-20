@@ -1,5 +1,6 @@
 package com.babychanging.babychanging.internal;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -33,6 +34,7 @@ public class Utils {
 
     public static final int REQUEST_LOCATION = 0;
     public static String[] PERMISSIONS_LOCATION = {android.Manifest.permission.ACCESS_COARSE_LOCATION, android.Manifest.permission.ACCESS_FINE_LOCATION};
+    public static String[] PERMISSIONS_WRITE_EXTERNAL_sTORAGE = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     public static final double MY_LATITUDE = 42.598726;
     public static final double MY_LONGITUDE = -5.567096;

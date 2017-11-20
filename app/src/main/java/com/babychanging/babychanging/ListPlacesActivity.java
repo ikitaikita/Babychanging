@@ -26,6 +26,7 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 //import android.util.Log;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +35,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.babychanging.babychanging.internal.AccessInterface;
 import com.babychanging.babychanging.internal.MyApplication;
@@ -42,6 +44,7 @@ import com.babychanging.babychanging.model.BChanging;
 import com.babychanging.babychanging.persistence.PersistenceSQL;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.model.LatLng;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONObject;
 
@@ -59,6 +62,9 @@ public class ListPlacesActivity extends Activity {
     public static final String TAG = ListPlacesActivity.class.getSimpleName();
     public final int RESULT_GET_ERROR = -1;
     public final int RESULT_GET_OK = 1;
+    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
+
+    //private boolean gotLocation = false;
 
     private ListView mLv_bchangings;
     private ArrayList<BChanging> mList_changings = new ArrayList();
@@ -78,8 +84,10 @@ public class ListPlacesActivity extends Activity {
     CustomLocationListener customLocationListener = new CustomLocationListener();
     boolean gps_enabled = false;
     boolean network_enabled = false;
-    private double latitude = 42.598726;
-    private double longitude = -5.567096;
+    //private double latitude = 42.598726;
+    //private double longitude = -5.567096;
+    private double latitude;
+    private double longitude ;
 
 
 
@@ -99,23 +107,10 @@ public class ListPlacesActivity extends Activity {
         requestLocationPermission();
 
 
-        if(mDeviceLocation!=null)
-        {
 
-            //Log.i(TAG, "tengo localizacion");
-
-            latitude = mDeviceLocation.getLatitude();
-            longitude = mDeviceLocation.getLongitude();
-
-        }
-        else
-        {
-            //Log.i(TAG, "waiting location....");
-        }
         //Log.i(TAG, "latitude: "+ String.valueOf(latitude));
         //Log.i(TAG, "longitude: "+  String.valueOf(longitude));
         int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-        getListBChangings();
 
         mLv_bchangings.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -142,10 +137,8 @@ public class ListPlacesActivity extends Activity {
                 }
 
                 //Call to DetailedBChangingFragment
-                Intent intent = new Intent(ListPlacesActivity.this, DetailBChangingFragmentActivity.class);
+                goToDetailBChanging(bundles);
 
-                intent.putExtras(bundles); //Put your id to your next Intent
-                startActivity(intent);
                // finish();
 
 
@@ -220,11 +213,164 @@ public class ListPlacesActivity extends Activity {
         });
     }
 
-    private void goToDetailBChanging()
-    {
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+
+        if (requestLocationPermission()) {
+            Log.i("request" ,"TRUE");
+            if  (ActivityCompat.checkSelfPermission(this,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED){
+
+
+
+
+                //Request location updates:
+                if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+
+                    mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, customLocationListener);
+                    mDeviceLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+
+
+                }
+
+                if (mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER))
+                {
+                    mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 2000, 0, customLocationListener);
+                    mDeviceLocation = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+
+                }
+
+                if(mDeviceLocation!=null)
+                {
+
+                    Log.i(TAG, "tengo localizacion");
+
+                    latitude = mDeviceLocation.getLatitude();
+                    longitude = mDeviceLocation.getLongitude();
+                    mStartpoint = new LatLng(latitude,longitude);
+                    Log.i("mStartpoint: ", mStartpoint.toString());
+                    getListBChangings();
+
+
+
+                }
+                else
+                {
+                    //Log.i(TAG, "waiting location....");
+
+                }
+
+
+            }
+        }else  Log.i("request" ,"FALSE");
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        Location net_loc = null, gps_loc = null;
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // location-related task you need to do.
+                    if (ActivityCompat.checkSelfPermission(this,
+                            android.Manifest.permission.ACCESS_FINE_LOCATION)
+                            == PackageManager.PERMISSION_GRANTED) {
+
+                        //Request location updates:
+                        if (gps_enabled) {
+
+                            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, customLocationListener);
+                            gps_loc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                        }
+
+                        if (network_enabled)
+                        {
+                            mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 2000, 0, customLocationListener);
+                            net_loc = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                        }
+                        if (gps_loc != null && net_loc != null) {
+
+
+                            if (gps_loc.getAccuracy() >= net_loc.getAccuracy())
+                            {
+                                //Log.i(TAG, "chosen Location: "+ "GPS");
+
+                                mDeviceLocation = gps_loc;
+                                Log.i("mDeviceLocation GPS 1: ", mDeviceLocation.toString());
+                                //mStartpoint = new LatLng(latitude,longitude);
+                                mStartpoint = new LatLng(mDeviceLocation.getLatitude(),mDeviceLocation.getLongitude());
+
+                                mApplication.setStartpoint(mStartpoint);
+
+                            }
+
+                            else
+                            {
+                                //Log.i(TAG, "chosen Location: "+ "NETWORK");
+                                mDeviceLocation = net_loc;
+                                Log.i("mDeviceLocation NET 1: ", mDeviceLocation.toString());
+                                //mStartpoint = new LatLng(latitude,longitude);
+                                mStartpoint = new LatLng(mDeviceLocation.getLatitude(),mDeviceLocation.getLongitude());
+                                mApplication.setStartpoint(mStartpoint);
+                            }
+
+
+                            // I used this just to get an idea (if both avail, its upto you which you want to take as I taken location with more accuracy)
+
+                        } else {
+
+                            if (gps_loc != null) {
+
+                                mDeviceLocation = gps_loc;
+                                latitude = mDeviceLocation.getLatitude();
+                                Log.i("mDeviceLocation GPS 2: ", mDeviceLocation.toString());
+
+                            } else if (net_loc != null) {
+
+                                mDeviceLocation = net_loc;
+                                longitude = mDeviceLocation.getLongitude();
+                                Log.i("mDeviceLocation NET 2: ", mDeviceLocation.toString());
+
+                            }
+                        }
+                    }
+
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    Toast toast1 =
+                            Toast.makeText(getApplicationContext(),
+                                    "The application needs GPS location to work", Toast.LENGTH_SHORT);
+
+                    toast1.show();
+
+                }
+                return;
+            }
+
+        }
 
     }
-    private void requestLocationPermission() {
+    private void goToDetailBChanging(Bundle bundles)
+    {
+        Intent intent = new Intent(ListPlacesActivity.this, DetailBChangingFragmentActivity.class);
+
+        intent.putExtras(bundles); //Put your id to your next Intent
+        startActivity(intent);
+
+    }
+    private boolean requestLocationPermission() {
 
         gps_enabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         network_enabled = mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
@@ -249,58 +395,17 @@ public class ListPlacesActivity extends Activity {
                             public void onClick(DialogInterface dialog, int id) {
                                 ActivityCompat
                                         .requestPermissions(ListPlacesActivity.this, Utils.PERMISSIONS_LOCATION,
-                                                Utils.REQUEST_LOCATION);
+                                                MY_PERMISSIONS_REQUEST_LOCATION);
                             }
                         }).show();
             } else {
-                ActivityCompat.requestPermissions(this, Utils.PERMISSIONS_LOCATION,
-                        Utils.REQUEST_LOCATION);
+                ActivityCompat.requestPermissions(this,
+                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                        MY_PERMISSIONS_REQUEST_LOCATION);
             }
-        } else {
-            //We already got the permissions, to proceed normally
-            //Only proceed to start the App, if initialization is finished
-            if (gps_enabled) {
-
-                mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, customLocationListener);
-                gps_loc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            }
-
-            if (network_enabled)
-            {
-                mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 2000, 0, customLocationListener);
-                net_loc = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            }
-            if (gps_loc != null && net_loc != null) {
-
-                if (gps_loc.getAccuracy() >= net_loc.getAccuracy())
-                {
-                    //Log.i(TAG, "chosen Location: "+ "GPS");
-                    mDeviceLocation = gps_loc;
-                    mStartpoint = new LatLng(latitude,longitude);
-                    mApplication.setStartpoint(mStartpoint);
-
-                }
-
-                else
-                {
-                    //Log.i(TAG, "chosen Location: "+ "NETWORK");
-                    mDeviceLocation = net_loc;
-                    mStartpoint = new LatLng(latitude,longitude);
-                    mApplication.setStartpoint(mStartpoint);
-                }
-
-
-                // I used this just to get an idea (if both avail, its upto you which you want to take as I taken location with more accuracy)
-
-            } else {
-
-                if (gps_loc != null) {
-                    mDeviceLocation = net_loc;
-                } else if (net_loc != null) {
-                    mDeviceLocation = gps_loc;
-                }
-            }
-            return;
+            return false;
+        }else {
+            return true;
         }
     }
     private void addTofavourites(BChanging bchanging, Context context)
@@ -523,10 +628,20 @@ public class ListPlacesActivity extends Activity {
                 holder.img_fav.setVisibility(View.VISIBLE);
             }else holder.img_fav.setVisibility(View.INVISIBLE);
 
-            if (holder.img_photo != null) {
+           /* if (holder.img_photo != null) {
                 if(p.getUrlpic().equals(""))
                     holder.img_photo.setBackgroundResource(R.drawable.ic_noimage_small);
                     else   new ImageDownloaderTask(holder.img_photo).execute(AccessInterface.URL_GETPHOTO + p.getUrlpic());
+            }*/
+            if (holder.img_photo != null) {
+                if(!p.getUrlpic().equals("")){
+                    Picasso.with(getContext())
+                            .load(AccessInterface.URL_GETPHOTO + p.getUrlpic())
+                            .noFade()
+                            .into(holder.img_photo);
+                }
+
+                else   holder.img_photo.setBackgroundResource(R.drawable.ic_noimage_small);
             }
 
 
@@ -718,3 +833,4 @@ public class ListPlacesActivity extends Activity {
         }
     }
 }
+

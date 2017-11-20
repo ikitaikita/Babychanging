@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion "26.0.0"
+    buildToolsVersion '26.0.2'
     defaultConfig {
         applicationId "com.babychanging.babychanging"
         minSdkVersion 16
@@ -28,4 +28,7 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.google.android.gms:play-services:3.2.65'
     testCompile 'junit:junit:4.12'
+
+    //image loading
+    compile 'com.squareup.picasso:picasso:2.5.2'
 }

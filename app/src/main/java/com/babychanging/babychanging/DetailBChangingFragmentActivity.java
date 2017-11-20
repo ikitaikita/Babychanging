@@ -13,6 +13,7 @@ import android.os.StrictMode;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 //import android.util.Log;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -28,15 +29,18 @@ import com.babychanging.babychanging.internal.MyApplication;
 import com.babychanging.babychanging.internal.Utils;
 import com.babychanging.babychanging.model.BChanging;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.squareup.picasso.Picasso;
 
 
 import org.json.JSONObject;
@@ -205,9 +209,21 @@ public class DetailBChangingFragmentActivity extends FragmentActivity implements
             mMap.setMyLocationEnabled(true);
             drawOnePointOnMap();
 
+            if (mBchanging.getUrlpic()!= null) {
+                if(!mBchanging.getUrlpic().equals(""))
+                {
+                    Picasso.with(getApplicationContext())
+                            .load(AccessInterface.URL_GETPHOTO + mBchanging.getUrlpic())
+                            .noFade()
+                            .into(mImg_pic);
+
+                }
 
 
-                if(mBchanging.getUrlpic()!= null)
+                else   mImg_pic.setBackgroundResource(R.drawable.ic_noimage_small);
+            }
+
+               /* if(mBchanging.getUrlpic()!= null)
                 {
 
                     if(!mBchanging.getUrlpic().equals(""))
@@ -233,7 +249,7 @@ public class DetailBChangingFragmentActivity extends FragmentActivity implements
 
 
 
-                }else mImg_pic.setBackgroundResource(R.drawable.ic_noimage_small);
+                }else mImg_pic.setBackgroundResource(R.drawable.ic_noimage_small);*/
 
 
 
@@ -250,6 +266,7 @@ public class DetailBChangingFragmentActivity extends FragmentActivity implements
                 DownloadTask downloadTask = new DownloadTask();
 
                 // Start downloading json data from Google Directions API
+
                 downloadTask.execute(url);
             }
         }
@@ -436,7 +453,12 @@ public class DetailBChangingFragmentActivity extends FragmentActivity implements
                 Toast toast1 =Toast.makeText(getApplicationContext(),"img_pic", Toast.LENGTH_SHORT);
                 toast1.show();
                 mRel_pic.setVisibility(View.VISIBLE);
-                new ImageDownloaderTaskUser(mImg_photo).execute(AccessInterface.URL_GETPHOTO + mBchanging.getUrlpic());
+                Picasso.with(getApplicationContext())
+                        .load(AccessInterface.URL_GETPHOTO + mBchanging.getUrlpic())
+                        .noFade()
+                        .into(mImg_photo);
+
+                //new ImageDownloaderTaskUser(mImg_photo).execute(AccessInterface.URL_GETPHOTO + mBchanging.getUrlpic());
 
             }
             break;
@@ -529,6 +551,8 @@ public class DetailBChangingFragmentActivity extends FragmentActivity implements
             ArrayList points = null;
             PolylineOptions lineOptions = null;
             MarkerOptions markerOptions = new MarkerOptions();
+            LatLngBounds.Builder builder = new LatLngBounds.Builder();
+
 
            /* ldd = result.get(0);
             for (int i = 0; i < ldd.size(); i++) {
@@ -553,6 +577,8 @@ public class DetailBChangingFragmentActivity extends FragmentActivity implements
                     LatLng position = new LatLng(lat, lng);
 
                     points.add(position);
+                    builder.include(position);
+
                 }
 
                 lineOptions.addAll(points);
@@ -561,8 +587,12 @@ public class DetailBChangingFragmentActivity extends FragmentActivity implements
                 lineOptions.geodesic(true);
 
             }
+            final LatLngBounds bounds = builder.build();
+            CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, 10);
+            mMap.animateCamera(cu);
 
-// Drawing polyline in the Google Map for the i-th route
+
+            // Drawing polyline in the Google Map for the i-th route
             mMap.addPolyline(lineOptions);
             addDistanceDuration();
         }

@@ -1,6 +1,8 @@
 
 package com.babychanging.babychanging;
 
+import android.*;
+import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ContentValues;
@@ -19,10 +21,12 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.app.AlertDialog;
 import android.util.Base64;
 //import android.util.Log;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -45,6 +49,7 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
     private static String TAG =UploadActivity.class.getSimpleName();
     private final int RESULT_UPLOAD_OK= 1;
     private final int RESULT_UPLOAD_ERROR = -1;
+    private final int MY_PERMISSIONS_REQUEST_STORAGE = 98;
     private static int TAKE_PICTURE = 2;
     private static final int SELECT_PICTURE = 3;
     private ImageView mImg_camera;
@@ -217,14 +222,9 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
     private void CaptureFoto() {
         /////
 
-        ContentValues values = new ContentValues();
-        values.put(MediaStore.Images.Media.TITLE, mNameCap);
-        Uri mCapturedImageURI  = this.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        requestCameraPermissions2();
 
-        Intent camaraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-        //camaraIntent.putExtra(MediaStore.EXTRA_OUTPUT, output);
 
-        startActivityForResult(camaraIntent, TAKE_PICTURE);
     }
 
     @Override
@@ -294,6 +294,77 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
 
 
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+
+            case MY_PERMISSIONS_REQUEST_STORAGE:
+                if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    Log.i("REQUEST_STORAGE", "YES");
+                    takePicture();
+                }
+                break;
+
+            default:
+                break;
+        }
+
+    }
+    private void takePicture(){
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.TITLE, mNameCap);
+        Uri mCapturedImageURI  = this.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+        Intent camaraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        //camaraIntent.putExtra(MediaStore.EXTRA_OUTPUT, output);
+
+        startActivityForResult(camaraIntent, TAKE_PICTURE);
+    }
+
+    private boolean requestCameraPermissions()
+    {
+
+        //Check, if we already have permission
+        if ((ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED)) {
+
+            // Provide an additional rationale to the user if the permission was not granted
+            // and the user would benefit from additional context for the use of the permission.
+            // For example, if the request has been denied previously.
+            if (ActivityCompat.shouldShowRequestPermissionRationale(UploadActivity.this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) ) {
+
+                // Display an AlertDialog with an explanation and a button to trigger the request.
+                new AlertDialog.Builder(this)
+                        .setMessage(getString(R.string.permission_storage_explanation))
+                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int id) {
+                                ActivityCompat
+                                        .requestPermissions(UploadActivity.this, Utils.PERMISSIONS_WRITE_EXTERNAL_sTORAGE,
+                                                MY_PERMISSIONS_REQUEST_STORAGE);
+                            }
+                        }).show();
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        MY_PERMISSIONS_REQUEST_STORAGE);
+            }
+            return false;
+        }else {
+            return true;
+        }
+    }
+
+    private void requestCameraPermissions2(){
+        int permissionCheck = ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_STORAGE);
+        } else {
+            takePicture();
+        }
+    }
+
     private String getRealPathFromURI(Uri contentUri) {
 
         String[] proj = { MediaStore.Images.Media.DATA };
@@ -401,6 +472,9 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
                 {
                     //Log.i(TAG, "chosen Location: "+ "GPS");
                     mDeviceLocation = gps_loc;
+                    latitude = mDeviceLocation.getLatitude();
+                    longitude = mDeviceLocation.getLongitude();
+
                     /*startpoint = new LatLng(latitude,longitude);
                     application.setStartpoint(startpoint);*/
 
@@ -410,6 +484,10 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
                 {
                     //Log.i(TAG, "chosen Location: "+ "NETWORK");
                     mDeviceLocation = net_loc;
+                    latitude = mDeviceLocation.getLatitude();
+                    longitude = mDeviceLocation.getLongitude();
+
+
                     /*startpoint = new LatLng(latitude,longitude);
                     application.setStartpoint(startpoint);*/
                 }
@@ -420,10 +498,15 @@ public class UploadActivity extends Activity  implements View.OnClickListener{
             } else {
 
                 if (gps_loc != null) {
-                    mDeviceLocation = net_loc;
-                } else if (net_loc != null) {
                     mDeviceLocation = gps_loc;
+                    latitude = mDeviceLocation.getLatitude();
+                    longitude = mDeviceLocation.getLongitude();
+                } else if (net_loc != null) {
+                    mDeviceLocation = net_loc;
+                    latitude = mDeviceLocation.getLatitude();
+                    longitude = mDeviceLocation.getLongitude();
                 }
+
             }
             return;
         }
